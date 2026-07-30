@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import ProcedureItem from "./ProcedureItem";
 import axios from "axios";
+
+import Navbar from "./components/Navbar";
+import ProcedureItem from "./ProcedureItem";
+
 function ProceduresPage() {
-const [procedures, setProcedures] = useState([
-    { id: 1, title: "Reset password" },
-    { id: 2, title: "Configure VPN" },
-    { id: 3, title: "Create employee account" }
-]);    
+const [procedures, setProcedures] = useState([]);    
     let getProceduresList = async () => {
         const access = localStorage.getItem("access");
         const responce = await axios.get(
@@ -21,6 +20,7 @@ const [procedures, setProcedures] = useState([
         if(responce.status === 200){
             let data = responce.data;
             setProcedures(data);
+            console.log("Success procedure come")
         }
     }
     useEffect(()=>{
@@ -30,6 +30,8 @@ const [procedures, setProcedures] = useState([
 
     return (
     <div>
+        <Navbar />
+
         <ul>
             {procedures.map((procedure)=>(
             <ProcedureItem

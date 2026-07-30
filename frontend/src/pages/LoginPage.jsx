@@ -40,22 +40,21 @@ function LoginPage() {
 
   return (
     <div>
-      <h1>Login</h1>
-
       <form onSubmit={handleSubmit}>
-        <input
+        <label htmlFor="login">Login</label> <br />
+        <input id="login"
           type="text"
           placeholder="Username or email"
           value={login}
           onChange={(event) => setLogin(event.target.value)}
-        />
-
-        <input
+        /> <br /> <br />
+      <label htmlFor="password">Password</label> <br />
+        <input id="password"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-        />
+        /> <br /> <br />
 
         <button type="submit">Log in</button>
       </form>

@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def me_view(request):
     user = request.user
@@ -15,6 +15,10 @@ def me_view(request):
     return Response({
         "id": user.id,
         "username": user.username,
+        "role": user.role.title,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "date_joined": user.date_joined,
         "email": user.email,
     })
 
