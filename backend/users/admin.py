@@ -11,25 +11,8 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "first_name",
         "last_name",
-        "role",
         "is_staff",
         "is_active",
     )
 
-    fieldsets = UserAdmin.fieldsets + (
-        (
-            "Role information",
-            {
-                "fields": ("role",),
-            },
-        ),
-    )
-
-    add_fieldsets = UserAdmin.add_fieldsets + (
-        (
-            "Role information",
-            {
-                "fields": ("role",),
-            },
-        ),
-    ) 
+   

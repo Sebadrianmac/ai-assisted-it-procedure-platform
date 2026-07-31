@@ -28,18 +28,19 @@ const ProfilePage = () => {
     
     useEffect(()=>{
         getUserInfor()
-    })
+    },[])
 
     return(
         <div>
             <Navbar />
             <p>{user?.username}</p>
-            <p>{user?.role}</p>
             <p>{user?.first_name}</p>
             <p>{user?.last_name}</p>
+            
             <p>{user?.date_joined}</p>
             <p>{user?.email}</p>
         </div>
+        
     )
 
 }
