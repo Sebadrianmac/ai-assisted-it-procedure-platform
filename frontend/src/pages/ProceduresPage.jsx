@@ -1,59 +1,124 @@
 import { useEffect, useState } from "react";
-import Navbar from "./components/Navbar";
+
 import ProcedureItem from "./ProcedureItem";
 
-const ProceduresPage = () => {
+const ProceduresPage = (props) => {
+  const {
+        permissions=[],
+    } =props
   const [procedures, setProcedures] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  
+  
   useEffect(() => {
+    const controller = new AbortController();
+
     const loadProcedures = async () => {
-      const accessToken = localStorage.getItem("access");
+      try {
+        const accessToken = localStorage.getItem("access");
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/procedures/",
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+        setIsLoading(true);
+        setError("");
+
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/procedures/",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            signal: controller.signal,
+          }
+        );
+
+        if (response.status === 401) {
+          throw new Error(
+            "You need to log in."
+          );
         }
-      );
 
-      const data = await response.json();
+        if (response.status === 403) {
+          throw new Error(
+            "You do not have permission to view procedures."
+          );
+        }
 
-      if (response.ok) {
+        if (!response.ok) {
+          throw new Error(
+            "Failed to load procedures."
+          );
+        }
+
+        const data = await response.json();
+
         setProcedures(data);
-      } else if (response.status === 401) {
-        setError("You need to log in.");
-      } else if (response.status === 403) {
-        setError("You do not have permission.");
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          setError(error.message);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadProcedures();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
+
+  if (isLoading) {
+    return <p>Loading procedures...</p>;
+  }
 
   if (error) {
     return <p>{error}</p>;
   }
 
+console.log(
+  "ProceduresPage permissions:",
+  permissions
+);
 
-    return (
-    <div>
-        <Navbar />
+  return (
+    <main>
+      <header>
+        <h1>Procedures</h1>
+        <p>Manage IT procedures</p>
+      </header>
 
-        <ul>
-            {procedures.map((procedure)=>(
-            <ProcedureItem
-            key={procedure.id}
-            id={procedure.id}
-            title={procedure.title}
-            />  
-            )
-            )}
-        </ul>
-    </div>
+      {procedures.length === 0 ? (
+        <p>No procedures found.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Procedure</th>
+              <th>Created by</th>
+              <th>Created</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {procedures.map((procedure) => (
+              <ProcedureItem
+                procedure={procedure}
+                permissions={permissions}
+              />
+            ))}
+          </tbody>
+        </table>
+      )}
+    </main>
   );
-}
+};
+
 
 export default ProceduresPage;

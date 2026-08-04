@@ -1,13 +1,15 @@
 const Can = ({
   permission,
-  permissions,
+  permissions = [],
   children,
+  fallback = null,
 }) => {
   if (!permissions.includes(permission)) {
-    return null;
+    return fallback;
   }
 
   return children;
 };
+
 
 export default Can;

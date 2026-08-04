@@ -32,7 +32,7 @@ const ProfilePage = () => {
 
     return(
         <div>
-            <Navbar />
+
             <p>{user?.username}</p>
             <p>{user?.first_name}</p>
             <p>{user?.last_name}</p>

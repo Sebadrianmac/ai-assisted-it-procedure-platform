@@ -1,72 +1,52 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import heximus from "../../assets/heximus.png";
+import { memo } from "react";
 import { Link } from "react-router-dom";
-import "./Navbar.css"
 
-const Navbar = () => {
+import heximus from "../../assets/heximus.png";
+import profile from "../../assets/profile.png";
+import logout from "../../assets/logout.png";
 
-    const [user, setUser] = useState(null);
-    const navigate = useNavigate();
+import "./Navbar.css";
+
+const Navbar = ({ user, onLogout }) => {
+  return (
+    <nav className="navbar">
+      <Link to="/procedures">
+        <img
+          src={heximus}
+          alt="Heximus"
+          className="logo"
+        />
+      </Link>
 
 
-    const getUserInfo = async () => {
-        try {
-            const access = localStorage.getItem("access");
+      <div className="navbar-user"> 
+        <span>
+          {user?.username || "User"}
+        </span>
+        <Link to="/profile">
+          <img
+            src={profile}
+            alt="Profile"
+            className=""
+          />
+        </Link>
 
-            const response = await axios.get(
-                "http://127.0.0.1:8000/api/auth/me/",
-                {
-                    headers: {
-                        Authorization: `Bearer ${access}`,
-                    },
-                }
-        );
-        if(response.status === 200){
-            const data = response.data;
-            setUser(data);
-            console.log(`Infor about me ${data.username}`)
-        }
-    } 
-    catch (error) {
-            if (error.response?.status === 401) {
-                localStorage.removeItem("access");
-                localStorage.removeItem("refresh");
-                navigate("/", { replace: true });
-            }
-        }
-    };
-    const handleClick = () => {
-        localStorage.removeItem("access");
-        localStorage.removeItem("refresh");
-        navigate('/',{replace: true})
-    }
-    
-    useEffect (()=>{
-        getUserInfo();
-    },[])
+        <Link 
+            to=""
+            onClick={onLogout}
+        >
+          <img
+            src={logout}
+            alt="Log Out"
+            className=""
+          />
+        </Link>       
 
-    return( 
-        <>
-        <nav className="navbar">
-            <Link to="/procedures">
-                <img src={heximus} alt="Heximus" className="logo" />
-            </Link>
-            <span>IT Procedure Creation and Execution Platform</span>
-            <div>
-                <span>{user?.username}</span>
-            <button onClick={handleClick}>    
-                Log out
-            </button>
-            </div>
-        </nav>
-        <div>
-        <button onClick={() => navigate("/profile")}>
-                Profile
-            </button>
-        </div>
-        </>
-    )
-}
-export default Navbar
+
+
+      </div>
+    </nav>
+  );
+};
+
+export default memo(Navbar);

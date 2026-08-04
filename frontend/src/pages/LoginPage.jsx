@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function LoginPage() {
+function LoginPage({onLogin}) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -34,6 +34,8 @@ function LoginPage() {
 
     localStorage.setItem("access", data.access);
     localStorage.setItem("refresh", data.refresh);
+
+    onLogin(data.user)
 
     navigate("/procedures");
   }
