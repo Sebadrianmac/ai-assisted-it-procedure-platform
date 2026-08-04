@@ -1,47 +1,45 @@
-import { useState, useEffect } from "react"
-import axios from "axios"
-import Navbar from "./components/Navbar";
+const ProfilePage = ({ user }) => {
+  if (!user) {
+    return (
+      <p>Profile information is unavailable.</p>
+    );
+  }
 
-const ProfilePage = () => {
+  return (
+    <main className="profile-page">
+      <h1>Profile</h1>
 
-    const[user, setUse] = useState(null)
+      <p>
+        <strong>Username:</strong>{" "}
+        {user.username}
+      </p>
 
-    const getUserInfor = async () => {
-        const access = localStorage.getItem("access");
-        try{
-        const responce = await axios.get(
-            'http://127.0.0.1:8000/api/auth/me',
-            {
-                headers: {
-                    Authorization: `Bearer ${access}`
-                }
-            }
-        )
-            if(responce.status === 200){
-                const data = responce.data;
-                setUse(data);
-            }
-        }catch{
-            console.error("Failed to load profile:", error);
-        }
-    }
-    
-    useEffect(()=>{
-        getUserInfor()
-    },[])
+      <p>
+        <strong>First name:</strong>{" "}
+        {user.first_name || "—"}
+      </p>
 
-    return(
-        <div>
+      <p>
+        <strong>Last name:</strong>{" "}
+        {user.last_name || "—"}
+      </p>
 
-            <p>{user?.username}</p>
-            <p>{user?.first_name}</p>
-            <p>{user?.last_name}</p>
-            
-            <p>{user?.date_joined}</p>
-            <p>{user?.email}</p>
-        </div>
-        
-    )
+      <p>
+        <strong>Email:</strong>{" "}
+        {user.email}
+      </p>
 
-}
-export default ProfilePage
+      <p>
+        <strong>Date joined:</strong>{" "}
+        {user.date_joined
+          ? new Date(
+              user.date_joined
+            ).toLocaleDateString()
+          : "—"}
+      </p>
+    </main>
+  );
+};
+
+
+export default ProfilePage;

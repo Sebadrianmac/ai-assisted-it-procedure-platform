@@ -11,6 +11,7 @@ const ProcedureStepsForm = ({
   setSteps,
   onBack,
   onCreate,
+  isCreating
 }) => {
   const [currentStep, setCurrentStep] =
     useState("");
@@ -167,11 +168,16 @@ const ProcedureStepsForm = ({
         </button>
 
         <button
-          type="submit"
+          type="button"
           onClick={onCreate}
-          disabled={steps.length === 0}
+          disabled={
+            steps.length === 0 ||
+            isCreating
+          }
         >
-          Create procedure
+          {isCreating
+            ? "Creating..."
+            : "Create procedure"}
         </button>
       </div>
     </section>

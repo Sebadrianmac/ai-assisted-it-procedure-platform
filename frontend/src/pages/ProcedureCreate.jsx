@@ -1,88 +1,121 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
+import api from "../api/api";
 import ProcedureInfoForm from "../procedure/ProcedureInfoForm";
 import ProcedureStepsForm from "../procedure/ProcedureStepsForm";
-import { useNavigate } from "react-router-dom";
 
 import "../../styles/ProcedureCreate.css";
 
+
 const ProcedureCreate = () => {
-    const [formStep, setFormStep] = useState(1);
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [steps, setSteps] = useState([]);
+  const [formStep, setFormStep] =useState(1);
+  const [title, setTitle] =useState("");
+  const [description, setDescription] =useState("");
+  const [steps, setSteps] =useState([]);
+  const [error, setError] =useState("");
+  const [isCreating, setIsCreating] =useState(false);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const handleCreate = async () => {
+    const procedureData = {
+      title: title.trim(),
+      description: description.trim(),
+      steps,
+    };
 
-    const handleCreate = async () => {
-        const access = localStorage.getItem("access");
-        
-        const procedureData = {
-            title: title.trim(),
-            description: description.trim(),
-            steps
-        };
+    try {
+      setIsCreating(true);
+      setError("");
 
-        try{
-            const response = await fetch(
-                "http://127.0.0.1:8000/api/procedures/",
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${access}`
-                    },
-                    body: JSON.stringify(
-                        procedureData
-                    ),
-                }
-            );
+      const response = await api.post(
+        "/api/procedures/",
+        procedureData
+      );
 
-            const data = await response.json();
+      console.log(
+        "Created procedure:",
+        response.data
+      );
 
-            if(!response.ok){
-                console.error(data)
-                return;
-            }
+      navigate("/procedures");
+    } catch (error) {
+      console.error(
+        "Procedure creation error:",
+        error
+      );
 
-            console.log(
-                "Created procedure",
-                data
-            );
-        navigate("/procedures");
+      const status =
+        error.response?.status;
 
+      const backendData =
+        error.response?.data;
 
-        }catch(error){
-            console.error(
-                "Server connection error:",
-                error
-            );
-        }
+      if (status === 401) {
+        setError(
+          "Your session has expired."
+        );
+      } else if (status === 403) {
+        setError(
+          "You do not have permission "
+          + "to create procedures."
+        );
+      } else if (status === 400) {
+        setError(
+          backendData?.title ||
+          backendData?.description ||
+          backendData?.steps ||
+          "Invalid procedure data."
+        );
+      } else {
+        setError(
+          "Failed to create procedure."
+        );
+      }
+    } finally {
+      setIsCreating(false);
     }
+  };
 
-    return (
+
+  return (
     <main className="procedure-create">
-        {formStep === 1 && (
+      {formStep === 1 && (
         <ProcedureInfoForm
-            title={title}
-            description={description}
-            setTitle={setTitle}
-            setDescription={setDescription}
-            onContinue={() => setFormStep(2)}
+          title={title}
+          description={description}
+          setTitle={setTitle}
+          setDescription={setDescription}
+          onContinue={() =>
+            setFormStep(2)
+          }
         />
-        )}
+      )}
 
-        {formStep === 2 && (
-        <ProcedureStepsForm
+      {formStep === 2 && (
+        <>
+          <ProcedureStepsForm
             title={title}
             description={description}
             steps={steps}
             setSteps={setSteps}
-            onBack={() => setFormStep(1)}
+            onBack={() =>
+              setFormStep(1)
+            }
             onCreate={handleCreate}
-        />
-        )}
+            isCreating={isCreating}
+          />
+
+          {error && (
+            <p className="form-error">
+              {error}
+            </p>
+          )}
+        </>
+      )}
     </main>
-    );
-    
-}
-export default ProcedureCreate
+  );
+};
+
+
+export default ProcedureCreate;

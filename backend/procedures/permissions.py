@@ -1,13 +1,19 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import (
+    BasePermission,
+)
 
 
-class CanViewProcedure(BasePermission):
-    message = "You do not have permission to view procedures."
+class ProcedurePermission(BasePermission):
 
     def has_permission(self, request, view):
-        if not request.user.is_authenticated:
-            return False 
+        if request.method == "GET":
+            return request.user.has_perm(
+                "procedures.view_procedure"
+            )
 
-        return request.user.has_perm(
-            "procedures.view_procedure"
-        )
+        if request.method == "POST":
+            return request.user.has_perm(
+                "procedures.add_procedure"
+            )
+
+        return False

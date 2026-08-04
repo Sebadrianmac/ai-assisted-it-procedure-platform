@@ -1,63 +1,59 @@
-import { useEffect, useState } from "react";
+import {useEffect,useState,} from "react";
 
+import api from "../api/api";
 import ProcedureItem from "./ProcedureItem";
 
-const ProceduresPage = (props) => {
-  const {
-        permissions=[],
-    } =props
-  const [procedures, setProcedures] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+const ProceduresPage = ({
+  permissions = [],
+}) => {
+  const [procedures, setProcedures] =useState([]);
+  const [isLoading, setIsLoading] =useState(true);
+  const [error, setError] =useState("");
 
-  
-  
   useEffect(() => {
     const controller = new AbortController();
 
     const loadProcedures = async () => {
       try {
-        const accessToken = localStorage.getItem("access");
-
         setIsLoading(true);
         setError("");
 
-        const response = await fetch(
-          "http://127.0.0.1:8000/api/procedures/",
+        const response = await api.get(
+          "/api/procedures/",
           {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
             signal: controller.signal,
           }
         );
 
-        if (response.status === 401) {
-          throw new Error(
+        setProcedures(response.data);
+      } catch (error) {
+ 
+        if (error.code === "ERR_CANCELED") {
+          return;
+        }
+
+        const status =
+          error.response?.status;
+
+        if (status === 401) {
+          setError(
             "You need to log in."
           );
-        }
-
-        if (response.status === 403) {
-          throw new Error(
-            "You do not have permission to view procedures."
+        } else if (status === 403) {
+          setError(
+            "You do not have permission "
+            + "to view procedures."
           );
-        }
-
-        if (!response.ok) {
-          throw new Error(
+        } else {
+          setError(
             "Failed to load procedures."
           );
         }
 
-        const data = await response.json();
-
-        setProcedures(data);
-      } catch (error) {
-        if (error.name !== "AbortError") {
-          setError(error.message);
-        }
+        console.error(
+          "Failed to load procedures:",
+          error
+        );
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
@@ -72,18 +68,16 @@ const ProceduresPage = (props) => {
     };
   }, []);
 
+
   if (isLoading) {
-    return <p>Loading procedures...</p>;
+    return (
+      <p>Loading procedures...</p>
+    );
   }
 
   if (error) {
     return <p>{error}</p>;
   }
-
-console.log(
-  "ProceduresPage permissions:",
-  permissions
-);
 
   return (
     <main>
@@ -107,12 +101,17 @@ console.log(
           </thead>
 
           <tbody>
-            {procedures.map((procedure) => (
-              <ProcedureItem
-                procedure={procedure}
-                permissions={permissions}
-              />
-            ))}
+            {procedures.map(
+              (procedure) => (
+                <ProcedureItem
+                  key={procedure.id}
+                  procedure={procedure}
+                  permissions={
+                    permissions
+                  }
+                />
+              )
+            )}
           </tbody>
         </table>
       )}

@@ -1,44 +1,73 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { publicApi } from "../api/api";
+import {
+  ACCESS_TOKEN,
+  REFRESH_TOKEN,
+} from "../api/constants";
+
 function LoginPage({onLogin}) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
+    const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  async function handleSubmit(event) {
+   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/auth/login/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          login: login,
-          password: password,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setMessage(data.error || "Login failed");
+    if (!login.trim() || !password) {
+      setMessage(
+        "Login and password are required."
+      );
       return;
     }
 
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
+    try {
+      setIsLoading(true);
+      setMessage("");
 
-    onLogin(data.user)
+      const response = await publicApi.post(
+        "/api/auth/login/",
+        {
+          login: login.trim(),
+          password,
+        }
+      );
 
-    navigate("/procedures");
-  }
+      const data = response.data;
+
+      localStorage.setItem(
+        ACCESS_TOKEN,
+        data.access
+      );
+
+      localStorage.setItem(
+        REFRESH_TOKEN,
+        data.refresh
+      );
+
+      onLogin(data.user);
+
+      navigate("/procedures");
+    } catch (error) {
+      console.error(
+        "Login error:",
+        error
+      );
+
+      setMessage(
+        error.response?.data?.error ||
+        "Cannot connect to the server."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div>
