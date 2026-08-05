@@ -1,8 +1,4 @@
-from rest_framework.permissions import (
-    BasePermission,
-)
-
-
+from rest_framework.permissions import BasePermission
 class ProcedurePermission(BasePermission):
 
     def has_permission(self, request, view):

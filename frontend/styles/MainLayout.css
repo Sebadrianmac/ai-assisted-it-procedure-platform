@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+
 }
 
 body {
@@ -16,7 +18,9 @@ body {
   padding: 24px;
   color: white;
   background-color: #28376f;
+  font-size: 20px;
 }
+
 
 .sidebar-navigation {
   display: flex;
@@ -25,15 +29,19 @@ body {
 }
 
 .sidebar-navigation a {
-  padding: 12px;
+  display: block;
+  padding: 10px 14px;
   color: white;
   text-decoration: none;
   border-radius: 6px;
 }
 
-.sidebar-navigation a:hover,
+.sidebar-navigation a:hover{
+    background-color: #465ba3;
+
+}
 .sidebar-navigation a.active {
-  background-color: #40518f;
+  background-color: #5268b5;
 }
 
 .app-main {
@@ -59,4 +67,36 @@ body {
 .app-content {
   padding: 24px;
   overflow: auto;
+}
+.sidebar-menu-button {
+  width: 100%;
+  padding: 12px 15px;
+  color: white;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+}
+
+.sidebar-menu-button:hover {
+  background-color: #465ba3;
+}
+
+.sidebar-menu-button[aria-expanded="true"] {
+  background-color: #465ba3;
+}
+.administration-menu {
+  margin: 0;
+  padding: 0px 0 0 5px;
+  list-style: none;
+}
+
+.administration-menu li{
+  margin-left: 8px;
+}
+
+.administration-menu a {
+  margin-left: 6px;
 }

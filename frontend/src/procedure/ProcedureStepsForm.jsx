@@ -1,8 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 
 const ProcedureStepsForm = ({
   title,
@@ -11,16 +7,11 @@ const ProcedureStepsForm = ({
   setSteps,
   onBack,
   onCreate,
-  isCreating
+  isCreating,
 }) => {
-  const [currentStep, setCurrentStep] =
-    useState("");
-
-  const [editingIndex, setEditingIndex] =
-    useState(null);
-
+  const [currentStep, setCurrentStep] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
   const inputRef = useRef(null);
-
   const confirmStep = () => {
     const cleanedStep = currentStep.trim();
 
@@ -44,10 +35,7 @@ const ProcedureStepsForm = ({
         description: cleanedStep,
       };
 
-      setSteps([
-        ...steps,
-        newStep,
-      ]);
+      setSteps([...steps, newStep]);
     }
 
     setCurrentStep("");
@@ -61,9 +49,7 @@ const ProcedureStepsForm = ({
   const handleEditStep = (index) => {
     setEditingIndex(index);
 
-    setCurrentStep(
-      steps[index].description
-    );
+    setCurrentStep(steps[index].description);
   };
 
   const handleCancelEdit = () => {
@@ -94,16 +80,9 @@ const ProcedureStepsForm = ({
           <ol>
             {steps.map((step, index) => (
               <li key={step.step_number}>
-                <span>
-                  {step.description}
-                </span>
+                <span>{step.description}</span>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleEditStep(index)
-                  }
-                >
+                <button type="button" onClick={() => handleEditStep(index)}>
                   Edit
                 </button>
               </li>
@@ -115,10 +94,7 @@ const ProcedureStepsForm = ({
       <form onSubmit={handleSubmit}>
         <label htmlFor="current-step">
           {editingIndex !== null
-            ? `Edit step ${
-                steps[editingIndex]
-                  .step_number
-              }`
+            ? `Edit step ${steps[editingIndex].step_number}`
             : `Step ${steps.length + 1}`}
         </label>
 
@@ -135,24 +111,15 @@ const ProcedureStepsForm = ({
                 ? "Edit step description"
                 : "Describe the next step"
             }
-            onChange={(event) =>
-              setCurrentStep(
-                event.target.value
-              )
-            }
+            onChange={(event) => setCurrentStep(event.target.value)}
           />
 
           <button type="submit">
-            {editingIndex !== null
-              ? "Save changes"
-              : "Add step"}
+            {editingIndex !== null ? "Save changes" : "Add step"}
           </button>
 
           {editingIndex !== null && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-            >
+            <button type="button" onClick={handleCancelEdit}>
               Cancel edit
             </button>
           )}
@@ -160,24 +127,16 @@ const ProcedureStepsForm = ({
       </form>
 
       <div className="steps-actions">
-        <button
-          type="button"
-          onClick={onBack}
-        >
+        <button type="button" onClick={onBack}>
           Back
         </button>
 
         <button
           type="button"
           onClick={onCreate}
-          disabled={
-            steps.length === 0 ||
-            isCreating
-          }
+          disabled={steps.length === 0 || isCreating}
         >
-          {isCreating
-            ? "Creating..."
-            : "Create procedure"}
+          {isCreating ? "Creating..." : "Create procedure"}
         </button>
       </div>
     </section>

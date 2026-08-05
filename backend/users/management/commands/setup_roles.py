@@ -1,104 +1,137 @@
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 
-
 ROLE_PERMISSIONS = {
     "System Administrator": [
-        "add_procedure",
-        "view_procedure",
-        "change_procedure",
-        "delete_procedure",
-        "approve_procedure",
-        "generate_procedure_with_ai",
+        "users.add_user",
+        "users.view_user",
+        "users.change_user",
+        "users.delete_user",
 
-        "add_procedureversion",
-        "view_procedureversion",
-        "change_procedureversion",
-        "delete_procedureversion",
+        "auth.add_group",
+        "auth.view_group",
+        "auth.change_group",
+        "auth.delete_group",
 
-        "add_procedurestep",
-        "view_procedurestep",
-        "change_procedurestep",
-        "delete_procedurestep",
+        "procedures.add_procedure",
+        "procedures.view_procedure",
+        "procedures.change_procedure",
+        "procedures.delete_procedure",
+        "procedures.approve_procedure",
+        "procedures.generate_procedure_with_ai",
+
+        "procedures.add_procedureversion",
+        "procedures.view_procedureversion",
+        "procedures.change_procedureversion",
+        "procedures.delete_procedureversion",
+
+        "procedures.add_procedurestep",
+        "procedures.view_procedurestep",
+        "procedures.change_procedurestep",
+        "procedures.delete_procedurestep",
     ],
 
     "IT Manager": [
-        "add_procedure",
-        "view_procedure",
-        "change_procedure",
-        "approve_procedure",
-        "generate_procedure_with_ai",
+        "procedures.add_procedure",
+        "procedures.view_procedure",
+        "procedures.change_procedure",
+        "procedures.approve_procedure",
+        "procedures.generate_procedure_with_ai",
 
-        "add_procedureversion",
-        "view_procedureversion",
-        "change_procedureversion",
+        "procedures.add_procedureversion",
+        "procedures.view_procedureversion",
+        "procedures.change_procedureversion",
 
-        "add_procedurestep",
-        "view_procedurestep",
-        "change_procedurestep",
+        "procedures.add_procedurestep",
+        "procedures.view_procedurestep",
+        "procedures.change_procedurestep",
     ],
 
     "Engineer": [
-        "view_procedure",
-        "view_procedureversion",
-        "view_procedurestep",
-        "change_procedurestep",
+        "procedures.view_procedure",
+        "procedures.view_procedureversion",
+        "procedures.view_procedurestep",
+        "procedures.change_procedurestep",
     ],
 
     "Sales Representative": [
-        "add_procedure",
-        "view_procedure",
-        "generate_procedure_with_ai",
+        "procedures.add_procedure",
+        "procedures.view_procedure",
+        "procedures.generate_procedure_with_ai",
     ],
 
     "Auditor": [
-        "view_procedure",
-        "view_procedureversion",
-        "view_procedurestep",
+        "procedures.view_procedure",
+        "procedures.view_procedureversion",
+        "procedures.view_procedurestep",
     ],
 
     "Customer": [
-        "view_procedure",
-        "view_procedureversion",
-        "view_procedurestep",
+        "procedures.view_procedure",
+        "procedures.view_procedureversion",
+        "procedures.view_procedurestep",
     ],
 }
 
-
 class Command(BaseCommand):
+    help = (
+        "Create roles and assign permissions"
+    )
 
     def handle(self, *args, **options):
-        for role_name, permissions_codes in ROLE_PERMISSIONS.items():
-            role, created = Group.objects.get_or_create(
-                name=role_name
+        for (
+            role_name,
+            permission_names,
+        ) in ROLE_PERMISSIONS.items():
+
+            role, created = (
+                Group.objects.get_or_create(
+                    name=role_name
+                )
             )
 
-            permissions = Permission.objects.filter(
-                content_type__app_label="procedures",
-                codename__in=permissions_codes,
-            )
+            assigned_permissions = []
+            missing_permissions = []
 
-            role.permissions.set(permissions)
+            for permission_name in permission_names:
+                app_label, codename = permission_name.split(
+                    ".",
+                    maxsplit=1,
+                )
 
-            found_codes = set(
-                permissions.values_list("codename", flat=True)
-            )
+                try:
+                    permission = Permission.objects.get(
+                        content_type__app_label=app_label,
+                        codename=codename,
+                    )
+                    assigned_permissions.append(permission)
 
-            missing_codes = set(permissions_codes) - found_codes
+                except Permission.DoesNotExist:
+                    missing_permissions.append(
+                        permission_name
+                    )
 
-            if missing_codes:
+            role.permissions.set(assigned_permissions)
+
+            if missing_permissions:
                 self.stdout.write(
                     self.style.WARNING(
-                        f"{role_name}: permissions not found: "
-                        f"{sorted(missing_codes)}"
+                        f"{role_name}: "
+                        "permissions not found: "
+                        f"{missing_permissions}"
                     )
                 )
 
-            action = "created" if created else "updated"
+            action = (
+                "created"
+                if created
+                else "updated"
+            )
 
             self.stdout.write(
                 self.style.SUCCESS(
                     f"{role_name}: {action}, "
-                    f"{permissions.count()} permissions"
+                    f"{len(assigned_permissions)} "
+                    "permissions"
                 )
             )

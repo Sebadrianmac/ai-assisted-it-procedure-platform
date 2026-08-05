@@ -31,7 +31,7 @@ function LoginPage({onLogin}) {
       setMessage("");
 
       const response = await publicApi.post(
-        "/api/auth/login/",
+        "api/auth/login/",
         {
           login: login.trim(),
           password,

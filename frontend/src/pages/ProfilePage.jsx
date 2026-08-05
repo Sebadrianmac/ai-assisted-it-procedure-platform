@@ -28,6 +28,10 @@ const ProfilePage = ({ user }) => {
         <strong>Email:</strong>{" "}
         {user.email}
       </p>
+      <p>
+        <strong>Role:</strong>{" "}
+        {user.roles}
+      </p>
 
       <p>
         <strong>Date joined:</strong>{" "}
