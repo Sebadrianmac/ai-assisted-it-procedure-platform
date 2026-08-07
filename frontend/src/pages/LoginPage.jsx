@@ -1,66 +1,101 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-function LoginPage() {
+import { publicApi } from "../api/api";
+import "../../styles/Form.css";
+
+import {
+  ACCESS_TOKEN,
+  REFRESH_TOKEN,
+} from "../api/constants";
+
+function LoginPage({onLogin}) {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
+    const [isLoading, setIsLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  async function handleSubmit(event) {
+   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    const response = await fetch(
-      "http://127.0.0.1:8000/api/auth/login/",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          login: login,
-          password: password,
-        }),
-      }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      setMessage(data.error || "Login failed");
+    if (!login.trim() || !password) {
+      setMessage(
+        "Login and password are required."
+      );
       return;
     }
 
-    localStorage.setItem("access", data.access);
-    localStorage.setItem("refresh", data.refresh);
+    try {
+      setIsLoading(true);
+      setMessage("");
 
-    navigate("/procedures");
-  }
+      const response = await publicApi.post(
+        "api/auth/login/",
+        {
+          login: login.trim(),
+          password,
+        }
+      );
+
+      const data = response.data;
+
+      localStorage.setItem(
+        ACCESS_TOKEN,
+        data.access
+      );
+
+      localStorage.setItem(
+        REFRESH_TOKEN,
+        data.refresh
+      );
+
+      onLogin(data.user);
+
+      navigate("/procedures");
+    } catch (error) {
+      console.error(
+        "Login error:",
+        error
+      );
+
+      setMessage(
+        error.response?.data?.error ||
+        "Cannot connect to the server."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   return (
     <div>
-      <h1>Login</h1>
-
-      <form onSubmit={handleSubmit}>
-        <input
+      <form onSubmit={handleSubmit} className="form-container">
+        <h1>Log in</h1>
+        <label htmlFor="login"></label>
+        <input id="login"
+          className="form-input"
           type="text"
           placeholder="Username or email"
           value={login}
           onChange={(event) => setLogin(event.target.value)}
-        />
-
-        <input
+      ></input>
+      <label htmlFor="password"></label>
+        <input id="password"
+          className="form-input"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-        />
+        ></input>
+        <button type="submit" className="form-button">Log in</button>
+         <p>{message}</p>
+         </form>
 
-        <button type="submit">Log in</button>
-      </form>
-
-      <p>{message}</p>
+   
     </div>
   );
 }

@@ -1,0 +1,260 @@
+.procedure-create,
+.procedure-info-form,
+.steps-form {
+  width: 100%;
+  max-width: 760px;
+  
+  padding: 25px;
+}
+
+.procedure-create *,
+.procedure-create *::before,
+.procedure-create *::after {
+  box-sizing: border-box;
+}
+
+.procedure-info-form,
+.steps-form {
+  padding: 28px;
+  background-color: #ffffff;
+  border: 1px solid #dce1e8;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px
+    rgb(15 23 42 / 8%);
+}
+
+/* Header */
+
+.procedure-info-form header,
+.steps-form header {
+  margin-bottom: 24px;
+}
+
+.procedure-info-form h1,
+.steps-form h1 {
+  margin: 0 0 8px;
+  color: #172033;
+  overflow-wrap: anywhere;
+}
+
+.procedure-info-form header p,
+.steps-form header p {
+  margin: 4px 0;
+  color: #64748b;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+
+.procedure-info-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field label,
+.steps-form label {
+  color: #263247;
+  font-weight: 600;
+}
+
+.form-field input,
+.form-field textarea,
+.step-input-row input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 13px;
+
+  font: inherit;
+  color: #172033;
+  background-color: #ffffff;
+
+  border: 1px solid #c7ced9;
+  border-radius: 6px;
+}
+
+.form-field textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.form-field input:focus,
+.form-field textarea:focus,
+.step-input-row input:focus {
+  border-color: #4057b5;
+  outline: 3px solid
+    rgb(64 87 181 / 15%);
+}
+
+.form-error {
+  margin: 0;
+  color: #b42318;
+}
+
+.steps-list {
+  margin-bottom: 24px;
+}
+
+.steps-list h2 {
+  margin: 0 0 14px;
+  color: #172033;
+}
+
+.steps-list ol {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  margin: 0;
+  padding-left: 34px;
+}
+
+.steps-list li {
+  position: relative;
+
+  min-height: 46px;
+  padding: 12px 78px 12px 14px;
+
+  color: #172033;
+  background-color: #f7f8fb;
+
+  border: 1px solid #e1e5ec;
+  border-radius: 6px;
+}
+
+.steps-list li::marker {
+  font-weight: 700;
+}
+
+.steps-list li span {
+  display: block;
+  min-width: 0;
+
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.steps-list li button {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+
+  padding: 5px 10px;
+
+  font: inherit;
+  color: #263247;
+  cursor: pointer;
+  background-color: #ffffff;
+
+  border: 1px solid #4057b5;
+  border-radius: 5px;
+}
+
+.steps-list li button:hover {
+  color: #ffffff;
+  background-color: #4057b5;
+}
+
+.steps-form form {
+  margin-top: 20px;
+}
+
+.step-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+
+  margin-top: 8px;
+}
+
+
+
+.step-input-row button,
+.steps-actions button,
+.procedure-info-form button {
+  padding: 10px 16px;
+
+  font: inherit;
+  color: #263247;
+  cursor: pointer;
+  background-color: #ffffff;
+
+  border: 1px solid #4057b5;
+  border-radius: 6px;
+
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    opacity 0.2s;
+}
+
+.step-input-row button[type="submit"],
+.steps-actions button:last-child,
+.procedure-info-form button[type="submit"] {
+  color: #ffffff;
+  background-color: #4057b5;
+}
+
+.step-input-row button:hover,
+.steps-actions button:hover,
+.procedure-info-form button:hover {
+  color: #ffffff;
+  background-color: #33499e;
+}
+
+.steps-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 28px;
+}
+
+.procedure-create button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.procedure-create button:disabled:hover {
+  color: inherit;
+  background-color: inherit;
+}
+
+
+
+@media (max-width: 600px) {
+  .procedure-info-form,
+  .steps-form {
+    padding: 18px;
+  }
+
+  .step-input-row {
+    grid-template-columns: 1fr;
+  }
+
+  .steps-list li {
+    padding-right: 14px;
+  }
+
+  .steps-list li button {
+    position: static;
+    margin-top: 10px;
+  }
+
+  .steps-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .steps-actions button {
+    width: 100%;
+  }
+}
