@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api/api";
-import ProcedureInfoForm from "../procedure/ProcedureInfoForm";
-import ProcedureStepsForm from "../procedure/ProcedureStepsForm";
+import ProcedureInfoForm from "./ProcedureInfoForm";
+import ProcedureStepsForm from "./ProcedureStepsForm";
 
 import "../../styles/ProcedureCreate.css";
 
@@ -15,7 +15,7 @@ const ProcedureCreate = () => {
   const [steps, setSteps] =useState([]);
   const [error, setError] =useState("");
   const [isCreating, setIsCreating] =useState(false);
-
+  
   const navigate = useNavigate();
   const handleCreate = async () => {
     const procedureData = {

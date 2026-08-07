@@ -1,4 +1,4 @@
-import Can from "./components/Can";
+import Can from "../pages/components/Can";
 
 const ProcedureItem = ({
   procedure,

@@ -7,25 +7,15 @@ import api from "../api/api";
 const UserEditPage = ({ permissions = [] }) => {
   const { userId } = useParams();
   const navigate = useNavigate();
-
   const [username, setUsername] = useState("");
-
   const [email, setEmail] = useState("");
-
   const [firstName, setFirstName] = useState("");
-
   const [lastName, setLastName] = useState("");
-
   const [roleName, setRoleName] = useState("");
-
   const [isActive, setIsActive] = useState(true);
-
   const [roleChoices, setRoleChoices] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
-
   const [isSaving, setIsSaving] = useState(false);
-
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -49,17 +39,11 @@ const UserEditPage = ({ permissions = [] }) => {
         const loadedUser = userResponse.data;
 
         setUsername(loadedUser.username || "");
-
         setEmail(loadedUser.email || "");
-
         setFirstName(loadedUser.first_name || "");
-
         setLastName(loadedUser.last_name || "");
-
         setIsActive(loadedUser.is_active);
-
         setRoleName(loadedUser.roles?.[0] || "");
-
         setRoleChoices(rolesResponse.data);
       } catch (error) {
         if (error.code === "ERR_CANCELED") {

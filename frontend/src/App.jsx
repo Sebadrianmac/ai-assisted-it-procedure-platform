@@ -5,7 +5,7 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "./api/constants";
 
 import LoginPage from "./pages/LoginPage";
 import ProceduresPage from "./pages/ProceduresPage";
-import ProcedureCreate from "./pages/ProcedureCreate";
+import ProcedureCreate from "./procedure/ProcedureCreate";
 import ProfilePage from "./pages/ProfilePage";
 import UsersPage from "./pages/UsersPage";
 import ProtectedRoute from "./pages/components/ProtectedRoute";
@@ -13,6 +13,7 @@ import MainLayout from "./layouts/MainLayout";
 import UserDetailsPage from "./users/UserDetailsPage";
 import UserCreate from "./users/UserCreate";
 import UserEditPage from "./users/UserEditPage";
+import RolePage from "./pages/RolePage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -120,7 +121,12 @@ function App() {
          />
         <Route
           path="/roles"
-          element={<p>Roles</p>}
+          element={
+          <RolePage 
+            permissions={
+              user?.permissions || []
+            }  
+          />}
         />
         <Route
           path="/configuration"

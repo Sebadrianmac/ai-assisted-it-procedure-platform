@@ -44,3 +44,16 @@ class RolePermission(BasePermission):
             return request.user.has_perm(
                 "auth.view_group"
             )
+        if request.method == "POST":
+            return request.user.has_perm(
+                "auth.add_group"
+            )
+        if request.method == "PATCH":
+            return request.user.has_perm(
+                "auth.change_group"
+            )
+        if request.method == "DELETE":
+            return request.user.has_perm(
+                "auth.delete_group"
+            )
+        return False

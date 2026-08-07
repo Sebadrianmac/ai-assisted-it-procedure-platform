@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { publicApi } from "../api/api";
+import "../../styles/Form.css";
+
 import {
   ACCESS_TOKEN,
   REFRESH_TOKEN,
@@ -71,26 +73,29 @@ function LoginPage({onLogin}) {
 
   return (
     <div>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="login">Login</label> <br />
+      <form onSubmit={handleSubmit} className="form-container">
+        <h1>Log in</h1>
+        <label htmlFor="login"></label>
         <input id="login"
+          className="form-input"
           type="text"
           placeholder="Username or email"
           value={login}
           onChange={(event) => setLogin(event.target.value)}
-        /> <br /> <br />
-      <label htmlFor="password">Password</label> <br />
+      ></input>
+      <label htmlFor="password"></label>
         <input id="password"
+          className="form-input"
           type="password"
           placeholder="Password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
-        /> <br /> <br />
+        ></input>
+        <button type="submit" className="form-button">Log in</button>
+         <p>{message}</p>
+         </form>
 
-        <button type="submit">Log in</button>
-      </form>
-
-      <p>{message}</p>
+   
     </div>
   );
 }

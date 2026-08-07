@@ -1,7 +1,7 @@
 import {useEffect, useState,} from "react";
 
 import api from "../api/api";
-import ProcedureItem from "./ProcedureItem";
+import ProcedureItem from "./../procedure/ProcedureItem";
 
 const ProceduresPage = ({
   permissions = [],

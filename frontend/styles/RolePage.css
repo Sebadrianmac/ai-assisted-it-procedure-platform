@@ -1,0 +1,234 @@
+.role-page {
+  min-height: 100vh;
+  margin: 20px;
+  padding: 15px;
+  background-color: #f5f7fb;
+}
+
+.role-page-header {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 24px;
+}
+
+.role-page-header h1 {
+  margin: 0;
+  color: #172033;
+  font-size: 32px;
+  line-height: 1.2;
+}
+
+.role-page-header p {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.role-container {
+  display: grid;
+  grid-template-columns:
+    minmax(240px, 300px)
+    minmax(500px, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  align-items: start;
+}
+
+.role-names,
+.roles-permission {
+  min-width: 0;
+  padding: 20px;
+  background-color: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.role-names {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.role-names > label {
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.role-names > select {
+  width: 100%;
+  min-height: 260px;
+  padding: 6px;
+  color: #1e293b;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.role-names > select:focus {
+  border-color: #3559a8;
+  box-shadow: 0 0 0 3px rgba(53, 89, 168, 0.15);
+}
+
+.role-names option {
+  padding: 10px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.role-names option:checked {
+  color: #ffffff;
+  background:
+    linear-gradient(#3559a8, #3559a8);
+}
+
+.role-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.role-actions button {
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.1s ease;
+}
+
+.role-actions button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.add-role-button {
+  color: #ffffff;
+  background-color: #3559a8;
+}
+
+.add-role-button:hover:not(:disabled) {
+  background-color: #29498e;
+}
+
+.change-role-button {
+  color: #3559a8;
+  background-color: #e9effc;
+  border: 1px solid #c7d5f2 !important;
+}
+
+.change-role-button:hover:not(:disabled) {
+  color: #ffffff;
+  background-color: #3559a8;
+}
+
+.delete-role-button {
+  color: #dc2626;
+  background-color: #fee2e2;
+  border: 1px solid #fecaca !important;
+}
+
+.delete-role-button:hover:not(:disabled) {
+  color: #ffffff;
+  background-color: #dc2626;
+}
+
+.role-actions button:disabled {
+  color: #94a3b8;
+  background-color: #e2e8f0;
+  border-color: #e2e8f0 !important;
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.roles-permission {
+  display: flex;
+  flex-direction: column;
+  min-height: 430px;
+  overflow: hidden;
+}
+
+.roles-permission > label {
+  margin-bottom: 12px;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.roles-permission > select {
+  width: 100%;
+  min-height: 360px;
+  padding: 6px;
+  color: #1e293b;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.roles-permission > select:focus {
+  border-color: #3559a8;
+  box-shadow: 0 0 0 3px rgba(53, 89, 168, 0.15);
+}
+
+.roles-permission option {
+  padding: 9px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.roles-permission option:checked {
+  color: #ffffff;
+  background:
+    linear-gradient(#3559a8, #3559a8);
+}
+
+@media (max-width: 900px) {
+  .role-container {
+    grid-template-columns: 1fr;
+  }
+
+  .role-names > select {
+    min-height: 220px;
+  }
+
+  .roles-permission {
+    min-height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .role-page {
+    padding: 20px 14px;
+  }
+
+  .role-page-header h1 {
+    font-size: 26px;
+  }
+
+  .role-names,
+  .roles-permission {
+    padding: 16px;
+  }
+}

@@ -1,26 +1,38 @@
 * {
   box-sizing: border-box;
   font-family: Arial, Helvetica, sans-serif;
+}
 
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
 }
 
 body {
-  margin: 0;
+  overflow-x: hidden;
 }
 
 .app-layout {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
+  width: 100%;
   min-height: 100vh;
+  background-color: #f5f7fb;
 }
 
+/* Sidebar */
+
 .sidebar {
+  width: 240px;
+  min-height: 100vh;
   padding: 24px;
-  color: white;
+  color: #ffffff;
   background-color: #28376f;
   font-size: 20px;
 }
-
 
 .sidebar-navigation {
   display: flex;
@@ -31,51 +43,68 @@ body {
 .sidebar-navigation a {
   display: block;
   padding: 10px 14px;
-  color: white;
+  color: #ffffff;
   text-decoration: none;
   border-radius: 6px;
 }
 
-.sidebar-navigation a:hover{
-    background-color: #465ba3;
-
+.sidebar-navigation a:hover {
+  background-color: #465ba3;
 }
+
 .sidebar-navigation a.active {
   background-color: #5268b5;
 }
 
+/* Main area */
+
 .app-main {
   display: grid;
-  grid-template-rows: 64px 1fr;
+  grid-template-rows: 70px minmax(0, 1fr);
   min-width: 0;
+  min-height: 100vh;
 }
 
 .navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
   padding: 0 24px;
+  background-color: #ffffff;
   border-bottom: 1px solid #d6d9e0;
+}
+
+.navbar img {
+  display: block;
+  width: auto;
+  max-width: 130px;
+  max-height: 54px;
 }
 
 .navbar-user {
   display: flex;
   align-items: center;
   gap: 16px;
+  min-width: 0;
 }
 
 .app-content {
+  min-width: 0;
   padding: 24px;
   overflow: auto;
 }
+
+/* Administration */
+
 .sidebar-menu-button {
   width: 100%;
   padding: 12px 15px;
-  color: white;
+  color: #ffffff;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  background: transparent;
+  background-color: transparent;
   border: none;
   border-radius: 8px;
 }
@@ -87,16 +116,40 @@ body {
 .sidebar-menu-button[aria-expanded="true"] {
   background-color: #465ba3;
 }
+
 .administration-menu {
   margin: 0;
-  padding: 0px 0 0 5px;
+  padding: 0 0 0 5px;
   list-style: none;
 }
 
-.administration-menu li{
+.administration-menu li {
   margin-left: 8px;
 }
 
 .administration-menu a {
   margin-left: 6px;
+  font-size: 17px;
+}
+
+/* Tablet and mobile */
+
+@media (max-width: 800px) {
+  .app-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .app-main {
+    min-height: auto;
+  }
+
+  .app-content {
+    padding: 16px;
+  }
 }
