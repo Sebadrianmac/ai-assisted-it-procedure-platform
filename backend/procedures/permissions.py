@@ -11,5 +11,23 @@ class ProcedurePermission(BasePermission):
             return request.user.has_perm(
                 "procedures.add_procedure"
             )
+        if request.method == "PATCH":
+            return request.user.has_perm(
+                "procedures.change_procedure"
+            )
 
+        if request.method == "DELETE":
+            return request.user.has_perm(
+                "procedures.delete_procedure"
+            )
         return False
+class CanApproveProcedure(BasePermission):
+    message = (
+        "You do not have permission "
+        "to change procedure status."
+    )
+
+    def has_permission(self, request, view):
+        return request.user.has_perm(
+            "procedures.approve_procedure"
+        )

@@ -6,6 +6,8 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "./api/constants";
 import LoginPage from "./pages/LoginPage";
 import ProceduresPage from "./pages/ProceduresPage";
 import ProcedureCreate from "./procedure/ProcedureCreate";
+import ProcedureDetailsPage from "./procedure/ProcedureDetailsPage";
+import EditProcedurePage from "./procedure/EditProcedurePage";
 import ProfilePage from "./pages/ProfilePage";
 import UsersPage from "./pages/UsersPage";
 import ProtectedRoute from "./pages/components/ProtectedRoute";
@@ -79,7 +81,28 @@ function App() {
 
         <Route
           path="/procedure/create"
-          element={<ProcedureCreate />}
+          element={<ProcedureCreate 
+          permissions={
+                user?.permissions || []
+              }
+          />}
+        />
+        <Route
+          path="/procedures/:procedureId"
+          element={<ProcedureDetailsPage 
+          permissions={
+                user?.permissions || []
+              }
+          />}
+        />
+
+        <Route
+          path="/procedures/edit/:procedureId"
+          element={<EditProcedurePage 
+          permissions={
+                user?.permissions || []
+              }
+          />}
         />
 
         <Route 

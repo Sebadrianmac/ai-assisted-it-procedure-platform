@@ -1,0 +1,151 @@
+
+.procedures-section{
+    padding: 25px;
+    margin-top: 25px;
+    width: 100%;
+    border: 1px solid #dbe2ea;
+    border-radius: 20px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.procedures-toolbar {
+  display: grid;
+  grid-template-columns:
+    280px
+    minmax(350px, 650px);
+  align-items: center;
+  justify-content: start;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.procedures-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: none;
+}
+
+.procedures-header{
+    margin-bottom: 0;
+}
+.procedures-header h1{
+    font-size: 32px;
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.procedures-header p{
+    margin-top: 5px;
+    color: gray;
+}
+
+.procedures-table-container{
+    border: 1px solid #cbcdcf;
+    border-radius: 12px;
+    overflow-x: auto;
+    width: 75%;
+}
+.procedures-table{
+    width: 100%;
+    min-width: 500px;
+    border-collapse: collapse;
+    table-layout: fixed;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+}
+.procedures-table thead{
+    background-color: #f5f7fa;
+}
+.column-procedure {
+  width: 46%;
+}
+
+.column-version {
+  width: 9%;
+}
+
+.column-status {
+  width: 12%;
+}
+
+.column-created {
+  width: 17%;
+}
+
+.column-actions {
+  width: 10%;
+}
+.procedures-table th {
+    text-align: left;
+    font-size: 14px;
+    padding: 14px 16px;
+    color: #b6b8bd;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+.procedures-table td{
+    padding: 14px 16px;
+    font-size: 16px;
+    border-bottom: 1px solid gainsboro;
+    color: #1f2937;
+}
+.procedures-table tbody tr:hover{
+  background-color: #f8fafc;
+}
+.procedures-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.procedures-table th:first-child {
+  width: 32%;
+}
+.procedure-title{
+    overflow: hidden;
+    color: #1f2937;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.procedure-description {
+  display: -webkit-box;
+  margin-top: 4px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.procedure-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+.procedure-status.created {
+    color: #15803d;
+    background-color: #dcfce7;
+}
+
+.procedure-status.draft {
+    color: #b45309;
+    background-color: #fef3c7;
+}
+
+.procedure-status.archived {
+    color: #475569;
+    background-color: #e2e8f0;
+}
+@media (max-width: 850px) {
+  .procedures-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .procedures-controls {
+    width: 100%;
+  }
+}

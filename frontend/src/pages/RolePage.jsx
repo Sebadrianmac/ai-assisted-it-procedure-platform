@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import api from "../api/api";
 import "../../styles/RolePage.css";
 import Can from "./components/Can";
-import CreateRoleForm from "./roles/CreateRoleForm";
-import RolePanel from "./roles/RolePanel";
+import CreateRoleForm from "../../src/roles/CreateRoleForm";
+import RolePanel from "../../src/roles/RolePanel";
 
 const RolePage = ({ permissions = [] }) => {
   const [roles, setRoles] = useState([]);

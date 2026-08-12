@@ -1,6 +1,6 @@
 import { useState } from "react";
-import api from "../../api/api";
-import "../../../styles/CreateRoleForm.css";
+import "../../styles/CreateRoleForm.css";
+import api from "../api/api";
 
 const CreateRoleForm = ({
   roles = [],

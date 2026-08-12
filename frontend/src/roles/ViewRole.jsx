@@ -1,5 +1,5 @@
-import "../../../styles/RolePage.css";
-import Can from "../components/Can";
+import "../../styles/RolePage.css";
+import Can from "../pages/components/Can";
 
 const ViewRole = ({
     permissions= [],

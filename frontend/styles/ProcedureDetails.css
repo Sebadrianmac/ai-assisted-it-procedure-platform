@@ -1,0 +1,273 @@
+.procedure-details-page {
+  padding: 24px;
+}
+
+.procedure-details-layout {
+  display: grid;
+  grid-template-columns: 600px minmax(0, 1fr);
+  align-items: start;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.procedure-info-card,
+.procedure-steps-card {
+  padding: 24px;
+
+  background-color: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 8%);
+}
+
+.procedure-info-card {
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+}
+
+.procedure-steps-card {
+  min-width: 0;
+}
+
+.details-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+
+.details-card-header h1,
+.details-card-header h2 {
+  margin: 4px 0 0;
+  color: #1e293b;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.details-card-header h1 {
+  font-size: 25px;
+}
+
+.details-card-header h2 {
+  font-size: 22px;
+}
+
+.card-label {
+  margin: 0;
+
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.procedure-details-description {
+  margin: 0 0 28px;
+
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+
+  overflow-wrap: anywhere;
+}
+
+.procedure-metadata {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+
+  margin: 0;
+}
+
+.procedure-metadata div {
+  min-width: 0;
+}
+
+.procedure-metadata dt {
+  margin-bottom: 6px;
+
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.procedure-metadata dd {
+  margin: 0;
+
+  color: #1e293b;
+  font-size: 15px;
+  font-weight: 600;
+
+  overflow-wrap: anywhere;
+}
+
+
+
+.version-badge {
+  flex-shrink: 0;
+
+  padding: 6px 11px;
+
+  color: #3559a8;
+  background-color: #e8eefc;
+  border-radius: 999px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+
+
+.procedure-status {
+  display: inline-block;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.procedure-status.created {
+  color: #475569;
+  background-color: #e2e8f0;
+}
+
+.procedure-status.in_progress {
+  color: #1d4ed8;
+  background-color: #dbeafe;
+}
+
+.procedure-status.completed {
+  color: #15803d;
+  background-color: #dcfce7;
+}
+
+.procedure-status.rejected {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
+
+.procedure-status.clarification_needed {
+  color: #b45309;
+  background-color: #fef3c7;
+}
+
+
+/* Список шагов */
+
+.procedure-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin: 0;
+  padding: 0;
+
+  list-style: none;
+}
+
+.procedure-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+
+  padding: 14px;
+
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.procedure-steps li:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.procedure-steps p {
+  min-width: 0;
+  margin: 2px 0 0;
+
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.5;
+
+  overflow-wrap: anywhere;
+}
+
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+
+  width: 30px;
+  height: 30px;
+
+  color: #ffffff;
+  background-color: #3559a8;
+  border-radius: 50%;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+
+@media (max-width: 900px) {
+  .procedure-details-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .procedure-info-card {
+    position: static;
+  }
+}
+
+
+
+@media (max-width: 600px) {
+  .procedure-details-page {
+    padding: 16px;
+  }
+
+  .procedure-details-layout {
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .procedure-info-card,
+  .procedure-steps-card {
+    padding: 18px;
+  }
+
+  .procedure-metadata {
+    grid-template-columns: 1fr;
+  }
+
+  .details-card-header {
+    flex-direction: column;
+  }
+
+  .details-card-header h1 {
+    font-size: 22px;
+  }
+
+  .details-card-header h2 {
+    font-size: 20px;
+  }
+}

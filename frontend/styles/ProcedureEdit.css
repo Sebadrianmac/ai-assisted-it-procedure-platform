@@ -1,0 +1,270 @@
+.procedure-edit {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.procedure-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 32px;
+  background-color: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+}
+
+.edit-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.edit-form-header h1 {
+  margin: 4px 0 0;
+  color: #101828;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.edit-form-label {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.edit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.edit-form-group > label,
+.steps-heading > label {
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.edit-form-group input,
+.edit-form-group textarea,
+.edit-form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  color: #101828;
+  background-color: #ffffff;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  outline: none;
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.edit-form-group textarea {
+  min-height: 120px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.edit-form-group select {
+  cursor: pointer;
+}
+
+.edit-form-group input:focus,
+.edit-form-group textarea:focus,
+.edit-form-group select:focus {
+  border-color: #6172f3;
+  box-shadow: 0 0 0 4px rgba(97, 114, 243, 0.12);
+}
+
+.edit-form-group input::placeholder,
+.edit-form-group textarea::placeholder {
+  color: #98a2b3;
+}
+
+.current-status {
+  width: fit-content;
+  padding: 6px 11px;
+  border-radius: 999px;
+  color: #344054;
+  background-color: #f2f4f7;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-created {
+  color: #344054;
+  background-color: #f2f4f7;
+}
+
+.status-in_progress {
+  color: #175cd3;
+  background-color: #eff8ff;
+}
+
+.status-completed {
+  color: #067647;
+  background-color: #ecfdf3;
+}
+
+.status-rejected {
+  color: #b42318;
+  background-color: #fef3f2;
+}
+
+.status-clarification_needed {
+  color: #b54708;
+  background-color: #fffaeb;
+}
+
+.steps-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.steps-heading span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.edit-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.edit-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 15px;
+  background-color: #f9fafb;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+}
+
+.edit-step-number {
+  display: flex;
+  flex: 0 0 30px;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: #ffffff;
+  background-color: #6172f3;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.edit-step p {
+  margin: 4px 0 0;
+  color: #344054;
+  line-height: 1.5;
+}
+
+.empty-steps {
+  margin: 0;
+  padding: 20px;
+  color: #667085;
+  background-color: #f9fafb;
+  border: 1px dashed #d0d5dd;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.edit-form-error {
+  margin: 0;
+  padding: 12px 14px;
+  color: #b42318;
+  background-color: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid #eaecf0;
+}
+
+.edit-form-actions button {
+  padding: 10px 17px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.edit-form-actions button:active {
+  transform: translateY(1px);
+}
+
+.edit-cancel-button {
+  color: #344054;
+  background-color: #ffffff;
+  border: 1px solid #d0d5dd;
+}
+
+.edit-cancel-button:hover {
+  background-color: #f9fafb;
+}
+
+.edit-save-button {
+  color: #ffffff;
+  background-color: #6172f3;
+  border: 1px solid #6172f3;
+}
+
+.edit-save-button:hover {
+  background-color: #444ce7;
+  border-color: #444ce7;
+}
+
+.edit-form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 600px) {
+  .procedure-edit {
+    padding: 16px;
+  }
+
+  .procedure-edit-form {
+    gap: 22px;
+    padding: 22px 18px;
+  }
+
+  .edit-form-header h1 {
+    font-size: 23px;
+  }
+
+  .edit-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .edit-form-actions button {
+    width: 100%;
+  }
+}

@@ -39,7 +39,6 @@
     rgb(64 87 181 / 15%);
 }
 
-/* Убирает стандартный крестик type="search". */
 .search-input__field::-webkit-search-cancel-button {
   display: none;
 }

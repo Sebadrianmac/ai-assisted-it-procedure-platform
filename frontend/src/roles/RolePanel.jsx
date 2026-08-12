@@ -1,7 +1,8 @@
 import CreateRoleForm from "./CreateRoleForm";
-import Can from "../components/Can";
+
 import ViewRole from "./ViewRole";
 import EditRoleForm from "./EditRoleForm";
+import Can from "../pages/components/Can";
 const RolePanel = ({
     mode, 
     setMode,
