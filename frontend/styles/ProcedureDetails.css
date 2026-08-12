@@ -1,262 +1,559 @@
 .procedure-details-page {
-  padding: 24px;
+  width: 100%;
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 32px 0px;
+  box-sizing: border-box;
 }
 
-.procedure-details-layout {
+
+
+.procedure-details-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.details-back-button,
+.details-edit-button,
+.page-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 9px 15px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+
+.details-back-button {
+  color: #344054;
+  background-color: #ffffff;
+  border: 1px solid #d0d5dd;
+}
+
+
+.details-back-button:hover {
+  background-color: #f9fafb;
+}
+
+
+.details-edit-button,
+.page-primary-action {
+  color: #ffffff;
+  background-color: #6172f3;
+  border: 1px solid #6172f3;
+}
+
+
+.details-edit-button:hover,
+.page-primary-action:hover {
+  background-color: #444ce7;
+  border-color: #444ce7;
+}
+
+
+/* Page layout */
+
+.procedure-details-content {
   display: grid;
-  grid-template-columns: 600px minmax(0, 1fr);
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(280px, 350px);
   align-items: start;
   gap: 24px;
-  margin-top: 24px;
 }
 
-.procedure-info-card,
-.procedure-steps-card {
-  padding: 24px;
 
-  background-color: #ffffff;
-  border: 1px solid #dbe2ea;
-  border-radius: 14px;
-  box-shadow: 0 4px 12px rgb(15 23 42 / 8%);
-}
-
-.procedure-info-card {
-  position: sticky;
-  top: 24px;
-  height: fit-content;
-}
-
-.procedure-steps-card {
+.selected-version-container {
   min-width: 0;
 }
 
-.details-card-header {
+
+.version-history-container {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+}
+
+
+.procedure-version-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+
+/* Shared cards */
+
+.procedure-info-card,
+.procedure-steps-card,
+.procedure-history-card {
+  padding: 26px;
+  background-color: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 14px;
+  box-shadow:
+    0 6px 18px
+    rgba(16, 24, 40, 0.05);
+}
+
+
+.details-card-header,
+.version-history-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 20px;
-  min-width: 0;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #eaecf0;
 }
 
-.details-card-header h1,
-.details-card-header h2 {
+
+.details-card-header h1 {
   margin: 4px 0 0;
-  color: #1e293b;
-  white-space: normal;
+  color: #101828;
+  font-size: 28px;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
-.details-card-header h1 {
-  font-size: 25px;
+
+.details-card-header h2,
+.version-history-header h2 {
+  margin: 4px 0 0;
+  color: #101828;
+  font-size: 20px;
 }
 
-.details-card-header h2 {
-  font-size: 22px;
-}
 
 .card-label {
   margin: 0;
-
-  color: #64748b;
-  font-size: 13px;
+  color: #667085;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
+
+
+/* Status */
+
+.procedure-status {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #344054;
+  background-color: #f2f4f7;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+
+.status-in_progress {
+  color: #175cd3;
+  background-color: #eff8ff;
+}
+
+
+.status-created {
+  color: #6941c6;
+  background-color: #f4f3ff;
+}
+
+
+.status-completed {
+  color: #067647;
+  background-color: #ecfdf3;
+}
+
+
+.status-rejected {
+  color: #b42318;
+  background-color: #fef3f2;
+}
+
+
+.status-clarification_needed {
+  color: #b54708;
+  background-color: #fffaeb;
+}
+
+
+.status-unknown {
+  color: #344054;
+  background-color: #f2f4f7;
+}
+
+
+/* Description */
 
 .procedure-details-description {
-  margin: 0 0 28px;
-
-  color: #64748b;
+  margin: 22px 0;
+  color: #475467;
   font-size: 15px;
-  line-height: 1.6;
-
+  line-height: 1.7;
+  white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+
+/* Metadata */
 
 .procedure-metadata {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 1px;
   margin: 0;
+  overflow: hidden;
+  background-color: #eaecf0;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
 }
 
-.procedure-metadata div {
+
+.procedure-metadata > div {
   min-width: 0;
+  padding: 14px;
+  background-color: #f9fafb;
 }
+
 
 .procedure-metadata dt {
-  margin-bottom: 6px;
-
-  color: #94a3b8;
+  margin-bottom: 5px;
+  color: #667085;
   font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-weight: 500;
 }
+
 
 .procedure-metadata dd {
   margin: 0;
-
-  color: #1e293b;
-  font-size: 15px;
+  color: #344054;
+  font-size: 14px;
   font-weight: 600;
-
   overflow-wrap: anywhere;
 }
 
 
+/* Review comment */
+
+.procedure-review-comment {
+  margin-top: 22px;
+  padding: 16px;
+  color: #b54708;
+  background-color: #fffaeb;
+  border: 1px solid #fedf89;
+  border-radius: 10px;
+}
+
+
+.procedure-review-comment h2 {
+  margin: 0 0 7px;
+  font-size: 15px;
+}
+
+
+.procedure-review-comment p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+
+/* Steps */
 
 .version-badge {
   flex-shrink: 0;
-
-  padding: 6px 11px;
-
-  color: #3559a8;
-  background-color: #e8eefc;
+  padding: 6px 10px;
+  color: #3538cd;
+  background-color: #eef4ff;
   border-radius: 999px;
-
-  font-size: 13px;
-  font-weight: 600;
-}
-
-
-
-.procedure-status {
-  display: inline-block;
-
-  padding: 5px 10px;
-
-  border-radius: 999px;
-
   font-size: 12px;
   font-weight: 600;
-  text-transform: capitalize;
+  white-space: nowrap;
 }
 
-.procedure-status.created {
-  color: #475569;
-  background-color: #e2e8f0;
-}
-
-.procedure-status.in_progress {
-  color: #1d4ed8;
-  background-color: #dbeafe;
-}
-
-.procedure-status.completed {
-  color: #15803d;
-  background-color: #dcfce7;
-}
-
-.procedure-status.rejected {
-  color: #b91c1c;
-  background-color: #fee2e2;
-}
-
-.procedure-status.clarification_needed {
-  color: #b45309;
-  background-color: #fef3c7;
-}
-
-
-/* Список шагов */
 
 .procedure-steps {
   display: flex;
   flex-direction: column;
   gap: 12px;
-
-  margin: 0;
+  margin: 22px 0 0;
   padding: 0;
-
   list-style: none;
 }
+
 
 .procedure-steps li {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-
-  padding: 14px;
-
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
+  gap: 13px;
+  padding: 15px;
+  background-color: #f9fafb;
+  border: 1px solid #eaecf0;
   border-radius: 10px;
-
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease;
-}
-
-.procedure-steps li:hover {
-  background-color: #f1f5f9;
-  border-color: #cbd5e1;
-  transform: translateY(-1px);
-}
-
-.procedure-steps p {
-  min-width: 0;
-  margin: 2px 0 0;
-
-  color: #334155;
-  font-size: 15px;
-  line-height: 1.5;
-
-  overflow-wrap: anywhere;
 }
 
 
 .step-number {
-  display: flex;
+  display: inline-flex;
+  flex: 0 0 32px;
   align-items: center;
   justify-content: center;
-  flex: 0 0 30px;
-
-  width: 30px;
-  height: 30px;
-
+  width: 32px;
+  height: 32px;
   color: #ffffff;
-  background-color: #3559a8;
+  background-color: #6172f3;
   border-radius: 50%;
-
   font-size: 13px;
   font-weight: 700;
 }
 
 
+.procedure-steps p {
+  margin: 5px 0 0;
+  color: #344054;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
-@media (max-width: 900px) {
-  .procedure-details-layout {
-    grid-template-columns: 1fr;
-  }
 
-  .procedure-info-card {
-    position: static;
-  }
+.empty-steps,
+.empty-history {
+  margin: 20px 0 0;
+  padding: 18px;
+  color: #667085;
+  background-color: #f9fafb;
+  border: 1px dashed #d0d5dd;
+  border-radius: 9px;
+  font-size: 14px;
+  text-align: center;
+}
+
+
+/* History card */
+
+.procedure-history-card {
+  padding: 20px;
+}
+
+
+.version-history-header {
+  align-items: center;
+  padding-bottom: 15px;
+}
+
+
+.version-history-header h2 {
+  font-size: 18px;
+}
+
+
+.version-history-header > span {
+  color: #667085;
+  font-size: 12px;
+}
+
+
+.version-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-top: 16px;
+}
+
+
+.version-history-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 13px;
+  color: inherit;
+  background-color: #ffffff;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+
+
+.version-history-item:hover {
+  background-color: #f9fafb;
+  border-color: #a4bcfd;
+}
+
+
+.version-history-item:focus-visible {
+  outline: none;
+  border-color: #6172f3;
+  box-shadow:
+    0 0 0 4px
+    rgba(97, 114, 243, 0.12);
+}
+
+
+.version-history-item:active {
+  transform: translateY(1px);
+}
+
+
+.version-history-item.selected {
+  background-color: #eef4ff;
+  border-color: #6172f3;
+  box-shadow:
+    0 0 0 1px
+    rgba(97, 114, 243, 0.12);
+}
+
+
+.version-history-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 5px;
+}
+
+
+.version-history-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+
+.version-history-title strong {
+  color: #101828;
+  font-size: 14px;
+}
+
+
+.current-version-label {
+  padding: 3px 7px;
+  color: #067647;
+  background-color: #ecfdf3;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+
+.version-history-name {
+  max-width: 100%;
+  overflow: hidden;
+  color: #475467;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.version-history-item time {
+  color: #98a2b3;
+  font-size: 11px;
 }
 
 
 
-@media (max-width: 600px) {
+.version-history-item
+.procedure-status {
+  max-width: 125px;
+  white-space: normal;
+  text-align: center;
+}
+
+
+.details-error {
+  width: 100%;
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 24px;
+  box-sizing: border-box;
+  color: #b42318;
+  background-color: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 12px;
+}
+
+
+.details-error p {
+  margin: 0 0 16px;
+}
+
+
+/* Tablet */
+
+@media (max-width: 950px) {
+  .procedure-details-content {
+    grid-template-columns: 1fr;
+  }
+
+  .version-history-container {
+    position: static;
+  }
+
+  .procedure-history-card {
+    order: -1;
+  }
+
+  .version-history-list {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* Mobile */
+
+@media (max-width: 650px) {
   .procedure-details-page {
     padding: 16px;
   }
 
-  .procedure-details-layout {
-    gap: 16px;
-    margin-top: 16px;
+  .procedure-details-navigation {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .details-back-button,
+  .details-edit-button {
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .procedure-info-card,
-  .procedure-steps-card {
-    padding: 18px;
-  }
-
-  .procedure-metadata {
-    grid-template-columns: 1fr;
+  .procedure-steps-card,
+  .procedure-history-card {
+    padding: 20px 17px;
   }
 
   .details-card-header {
@@ -264,10 +561,24 @@
   }
 
   .details-card-header h1 {
-    font-size: 22px;
+    font-size: 23px;
   }
 
-  .details-card-header h2 {
-    font-size: 20px;
+  .procedure-metadata {
+    grid-template-columns: 1fr;
+  }
+
+  .version-history-list {
+    grid-template-columns: 1fr;
+  }
+
+  .version-history-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .version-history-item
+  .procedure-status {
+    max-width: none;
   }
 }

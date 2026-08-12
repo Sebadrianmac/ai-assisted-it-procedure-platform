@@ -126,20 +126,7 @@
     font-weight: 500;
     text-transform: capitalize;
 }
-.procedure-status.created {
-    color: #15803d;
-    background-color: #dcfce7;
-}
 
-.procedure-status.draft {
-    color: #b45309;
-    background-color: #fef3c7;
-}
-
-.procedure-status.archived {
-    color: #475569;
-    background-color: #e2e8f0;
-}
 @media (max-width: 850px) {
   .procedures-toolbar {
     grid-template-columns: 1fr;

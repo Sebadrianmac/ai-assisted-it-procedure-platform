@@ -763,7 +763,6 @@ def update_procedure(
         validated_data["description"]
     )
 
-    # Удаляем старые шаги именно из черновика.
     active_version.steps.all().delete()
 
     for step_data in validated_data["steps"]:
@@ -844,7 +843,6 @@ def update_procedure(
 
         active_version.save()
 
-    # Обновляем updated_at основной Procedure.
     procedure.save(
         update_fields=["updated_at"]
     )

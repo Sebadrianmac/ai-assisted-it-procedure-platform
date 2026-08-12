@@ -1,89 +1,103 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/api";
-import "../../styles/ProcedureDetails.css"
+import ProcedureVersionContent from "../procedure/ProcedureVersionContent";
+import ProcedureVersionHistory from "../procedure/ProcedureVersionHistory";
+import "../../styles/ProcedureDetails.css";
 
-const ProcedureDetailsPage = ({
-    permissions,
-}) => {
+const ProcedureDetailsPage = ({ permissions = [] }) => {
+  const navigate = useNavigate();
+  const { procedureId } = useParams();
+  const [procedure, setProcedure] = useState(null);
+  const [selectedVersionId, setSelectedVersionId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    const { procedureId } = useParams();
-    const [procedure, setProcedure] = useState(null)
-
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState("");
-    useEffect (()=>{
+  useEffect(() => {
     const controller = new AbortController();
 
     const loadProcedure = async () => {
-        try{
-            setIsLoading(true);
-            setError("");
-            
-            const response = await api.get(`/api/procedures/${procedureId}/`,{
-                signal: controller.signal,
-            })
-            setProcedure(response.data);
-        }catch(error){
-            if(error.code === "ERR_CANCELED"){
-                return;
-            }
-            const status= error.response?.status
-            if (status === 401) {
-            setError("You need to log in.");
-            } else if (status === 403) {
-            setError("You do not have permission " + "to view this procedure.");
-            } else if (status === 404) {
-            setError("Procedure was not found.");
-            } else {
-            setError("Failed to load Procedure.");
-            }
-            console.error("Failed to load user:", error);
+      try {
+        setIsLoading(true);
+        setError("");
+
+        const response = await api.get(`/api/procedures/${procedureId}/`, {
+          signal: controller.signal,
+        });
+
+        const procedureData = response.data;
+
+        setProcedure(procedureData);
+
+        const defaultVersion =
+          procedureData.active_version ??
+          procedureData.current_version ??
+          procedureData.versions?.[0] ??
+          null;
+
+        setSelectedVersionId(defaultVersion?.id ?? null);
+      } catch (error) {
+        if (error.code === "ERR_CANCELED") {
+          return;
+        }
+
+        const responseStatus = error.response?.status;
+
+        if (responseStatus === 401) {
+          setError("You need to log in.");
+        } else if (responseStatus === 403) {
+          setError("You do not have permission " + "to view this procedure.");
+        } else if (responseStatus === 404) {
+          setError("Procedure was not found.");
+        } else {
+          setError("Failed to load procedure.");
+        }
+
+        console.error("Failed to load procedure:", error);
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
         }
-        }
-    }
+      }
+    };
+
     loadProcedure();
-       return () => {
+    return () => {
       controller.abort();
     };
   }, [procedureId]);
 
-    
-    const currentVersion = procedure?.versions?.find(
-    (version) => version.is_current
-    );
-    const formatDate = (dateValue) => {
-    if (!dateValue) {
-        return "—";
+  const selectedVersion = useMemo(() => {
+    if (!procedure) {
+      return null;
     }
 
-    return new Intl.DateTimeFormat(
-        "en-GB",
-        {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        }
-    ).format(new Date(dateValue));
-    };
+    return (
+      procedure.versions?.find((version) => version.id === selectedVersionId) ??
+      procedure.active_version ??
+      procedure.current_version ??
+      null
+    );
+  }, [procedure, selectedVersionId]);
+
+  const activeVersion = procedure?.active_version ?? null;
+  const selectedVersionIsActive = selectedVersion?.id === activeVersion?.id;
+  const canEdit = permissions.includes("procedures.change_procedure");
+  const canEditSelectedVersion =canEdit &&selectedVersionIsActive &&
+    ["in_progress", "clarification_needed"].includes(selectedVersion?.status);
+
   if (isLoading) {
     return <p>Loading procedure...</p>;
   }
 
   if (error) {
     return (
-      <section>
+      <section className="details-error">
         <p>{error}</p>
 
-        <Link 
-        to="/procedures"
-        className="page-primary-action"
-        >Back to procedure</Link>
+        <Link to="/procedures" className="page-primary-action">
+          Back to procedures
+        </Link>
       </section>
     );
   }
@@ -92,101 +106,45 @@ const ProcedureDetailsPage = ({
     return <p>Procedure not found.</p>;
   }
 
-    const authorName = [
-        procedure?.created_by?.first_name,
-        procedure?.created_by?.last_name,
-    ]
-        .filter(Boolean)
-        .join(" ");
+  return (
+    <div className="procedure-details-page">
+      <div className={"procedure-details-navigation"}>
+        <button
+          type="button"
+          className="details-back-button"
+          onClick={() => navigate("/procedures")}
+        >
+          Back to procedures
+        </button>
 
-    const displayedAuthor =
-        authorName ||
-        procedure?.created_by?.username ||
-        "—";
+        {canEditSelectedVersion && (
+          <Link
+            to={`/procedures/edit/${procedure.id}`}
+            className={"details-edit-button"}
+          >
+            Edit procedure
+          </Link>
+        )}
+      </div>
 
-    return (
-        <div className="procedure-details-layout">
-        <section className="procedure-info-card">
-            <div className="details-card-header">
-            <div>
-                <p className="card-label">Procedure details</p>
-                <h1>{procedure.title}</h1>
-            </div>
+      <div className={"procedure-details-content"}>
+        <main className={"selected-version-container"}>
+          <ProcedureVersionContent
+            procedure={procedure}
+            version={selectedVersion}
+          />
+        </main>
 
-            <span
-                className={`procedure-status ${procedure.status}`}
-            >
-                {procedure.status}
-            </span>
-            </div>
+        <aside className={"version-history-container"}>
+          <ProcedureVersionHistory
+            versions={procedure.versions ?? []}
+            selectedVersionId={selectedVersionId}
+            onVersionSelect={setSelectedVersionId}
+          />
+        </aside>
+      </div>
+    </div>
+  );
+};
 
-            <p className="procedure-details-description">
-            {procedure.description || "No description"}
-            </p>
-
-            <dl className="procedure-metadata">
-            <div>
-                <dt>Created by</dt>
-                <dd>
-                    {displayedAuthor}
-                </dd>
-            </div>
-
-            <div>
-                <dt>Created at</dt>
-                <dd>{formatDate(procedure.created_at || "—")}</dd>
-            </div>
-
-            <div>
-                <dt>Last modified</dt>
-                <dd>{formatDate(procedure.updated_at || "—")}</dd>
-            </div>
-
-            <div>
-                <dt>Current version</dt>
-                <dd>
-                {currentVersion?.version_number || "—"}
-                </dd>
-            </div>
-            </dl>
-        </section>
-
-        <section className="procedure-steps-card">
-            <div className="details-card-header">
-            <div>
-                <p className="card-label">Instructions</p>
-                <h2>Procedure steps</h2>
-            </div>
-
-            {currentVersion && (
-                <span className="version-badge">
-                Version {currentVersion.version_number}
-                </span>
-            )}
-            </div>
-
-            {!currentVersion ? (
-            <p>No current version.</p>
-            ) : currentVersion.steps.length === 0 ? (
-            <p>No steps found.</p>
-            ) : (
-            <ol className="procedure-steps">
-                {currentVersion.steps.map((step) => (
-                <li key={step.id}>
-                    <span className="step-number">
-                    {step.step_number}
-                    </span>
-
-                    <p>{step.description}</p>
-                </li>
-                ))}
-            </ol>
-            )}
-            
-        </section>
-        
-        </div>
-        
-    );
-    };
-export default ProcedureDetailsPage
+export default ProcedureDetailsPage;

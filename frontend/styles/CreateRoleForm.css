@@ -71,7 +71,6 @@
   box-shadow: 0 0 0 3px rgba(53, 89, 168, 0.15);
 }
 
-/* --- Блок выбора и переноса прав --- */
 
 .permission-transfer {
   display: grid;
@@ -140,7 +139,6 @@
   cursor: not-allowed;
 }
 
-/* --- Ошибки и действия формы --- */
 
 .form-error {
   margin: 16px 0 0;
@@ -188,7 +186,6 @@
   cursor: not-allowed;
 }
 
-/* --- Адаптивность для формы --- */
 
 @media (max-width: 750px) {
   .permission-transfer {

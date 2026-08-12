@@ -19,6 +19,12 @@ const formatDate = (dateValue) => {
     return "—";
   }
 
+  const date = new Date(dateValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
   return new Intl.DateTimeFormat(
     "en-GB",
     {
@@ -28,14 +34,15 @@ const formatDate = (dateValue) => {
       hour: "2-digit",
       minute: "2-digit",
     }
-  ).format(new Date(dateValue));
+  ).format(date);
 };
 
 
 const ProcedureItem = ({
   procedure,
   permissions = [],
-  isActionsOpen,
+  isActionsOpen = false,
+  isDeleting = false,
   onActionsClose,
   onActionsToggle,
   onDeleteProc,
@@ -54,22 +61,83 @@ const ProcedureItem = ({
     procedure.created_by?.username ||
     "—";
 
+  const displayVersion =
+    procedure.display_version ??
+    procedure.active_version ??
+    procedure.current_version ??
+    null;
+
+
+  const displayStatus =
+    procedure.status ??
+    displayVersion?.status ??
+    null;
+
+  const displayStatusLabel =
+    procedure.status_label ??
+    displayVersion?.status_label ??
+    "Unknown";
+
+
+  const displayVersionNumber =
+    procedure.version_number ??
+    displayVersion?.version_number ??
+    null;
+
+
+  const versionLabel =
+    displayVersionNumber ??
+    (
+      displayStatus === "in_progress"
+        ? "Draft"
+        : "—"
+    );
+
+  const canEditCurrentState = [
+    "in_progress",
+    "clarification_needed",
+  ].includes(displayStatus);
+
+
   const openProcedure = () => {
     navigate(
       `/procedures/${procedure.id}`
     );
   };
 
+
+  const handleRowKeyDown = (event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      openProcedure();
+    }
+  };
+
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Delete "${
+        procedure.title || "this procedure"
+      }"?`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await onDeleteProc(procedure.id);
+  };
+
+
   return (
     <tr
       className="procedure-row"
       onClick={openProcedure}
       tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === "Enter") {
-          openProcedure();
-        }
-      }}
+      onKeyDown={handleRowKeyDown}
     >
       <td>
         <div className="procedure-title">
@@ -81,22 +149,38 @@ const ProcedureItem = ({
         </div>
       </td>
 
+
       <td>
-        {procedure.current_version
-          ?.version_number || "—"}
+        <span className="procedure-version">
+          {versionLabel}
+        </span>
+
+        {procedure.active_version &&
+          procedure.current_version && (
+            <span
+              className={
+                "procedure-version-note"
+              }
+            >
+              Current:{" "}
+              {procedure.current_version
+                .version_number ?? "—"}
+            </span>
+          )}
       </td>
+
 
       <td>
         <span
           className={
-            `procedure-status ${
-              procedure.status
-            }`
+            `procedure-status ` +
+            `status-${displayStatus ?? "unknown"}`
           }
         >
-          {procedure.status || "—"}
+          {displayStatusLabel}
         </span>
       </td>
+
 
       <td>
         <div className="procedure-author">
@@ -118,10 +202,14 @@ const ProcedureItem = ({
         </div>
       </td>
 
+
       <td
         className="actions-cell"
         onMouseLeave={onActionsClose}
         onClick={(event) => {
+          event.stopPropagation();
+        }}
+        onKeyDown={(event) => {
           event.stopPropagation();
         }}
       >
@@ -136,12 +224,17 @@ const ProcedureItem = ({
           }
           onClick={onActionsToggle}
           aria-label={
-            `Actions for ${procedure.title}`
+            `Actions for ${
+              procedure.title ||
+              "procedure"
+            }`
           }
           aria-expanded={isActionsOpen}
+          disabled={isDeleting}
         >
           ⋮
         </button>
+
 
         {isActionsOpen && (
           <div className="actions-dropdown">
@@ -153,31 +246,39 @@ const ProcedureItem = ({
             >
               <Link
                 to={
-                  `/procedures/${
-                    procedure.id
-                  }`
+                  `/procedures/${procedure.id}`
                 }
+                onClick={onActionsClose}
               >
                 <Eye size={18} />
+
                 <span>View details</span>
               </Link>
             </Can>
 
-            <Can
-              permission={
-                "procedures.change_procedure"
-              }
-              permissions={permissions}
-            >
-              <Link
-                to={
-                  `/procedures/edit/${procedure.id}`
+
+            {canEditCurrentState && (
+              <Can
+                permission={
+                  "procedures.change_procedure"
                 }
+                permissions={permissions}
               >
-                <Pencil size={18} />
-                <span>Edit</span>
-              </Link>
-            </Can>
+                <Link
+                  to={
+                    `/procedures/edit/${
+                      procedure.id
+                    }`
+                  }
+                  onClick={onActionsClose}
+                >
+                  <Pencil size={18} />
+
+                  <span>Edit</span>
+                </Link>
+              </Can>
+            )}
+
 
             <Can
               permission={
@@ -187,15 +288,19 @@ const ProcedureItem = ({
             >
               <button
                 type="button"
-                className="delete-menu-action"
-                onClick={() => {
-                  onDeleteProc(
-                    procedure.id
-                  );
-                }}
+                className={
+                  "delete-menu-action"
+                }
+                onClick={handleDelete}
+                disabled={isDeleting}
               >
                 <Trash2 size={18} />
-                <span>Delete</span>
+
+                <span>
+                  {isDeleting
+                    ? "Deleting..."
+                    : "Delete"}
+                </span>
               </button>
             </Can>
           </div>
