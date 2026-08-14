@@ -4,6 +4,7 @@ import api from "../api/api";
 import ProcedureVersionContent from "../procedure/ProcedureVersionContent";
 import ProcedureVersionHistory from "../procedure/ProcedureVersionHistory";
 import "../../styles/ProcedureDetails.css";
+import Can from "../pages/components/Can";
 
 const ProcedureDetailsPage = ({ permissions = [] }) => {
   const navigate = useNavigate();
@@ -26,7 +27,6 @@ const ProcedureDetailsPage = ({ permissions = [] }) => {
         });
 
         const procedureData = response.data;
-
         setProcedure(procedureData);
 
         const defaultVersion =
@@ -83,9 +83,14 @@ const ProcedureDetailsPage = ({ permissions = [] }) => {
   const activeVersion = procedure?.active_version ?? null;
   const selectedVersionIsActive = selectedVersion?.id === activeVersion?.id;
   const canEdit = permissions.includes("procedures.change_procedure");
-  const canEditSelectedVersion =canEdit &&selectedVersionIsActive &&
+  const canEditSelectedVersion =
+    canEdit &&
+    selectedVersionIsActive &&
     ["in_progress", "clarification_needed"].includes(selectedVersion?.status);
-
+  const canCreateNewRevision =
+    !activeVersion &&
+    selectedVersion?.is_current &&
+    selectedVersion?.status === "completed";
   if (isLoading) {
     return <p>Loading procedure...</p>;
   }
@@ -116,7 +121,10 @@ const ProcedureDetailsPage = ({ permissions = [] }) => {
         >
           Back to procedures
         </button>
-
+        <Can
+          permissions={permissions}
+          permission = "procedures.change_procedureversion" 
+        >
         {canEditSelectedVersion && (
           <Link
             to={`/procedures/edit/${procedure.id}`}
@@ -125,6 +133,21 @@ const ProcedureDetailsPage = ({ permissions = [] }) => {
             Edit procedure
           </Link>
         )}
+        </Can>
+        <Can 
+          permissions={permissions}
+          permission={"procedures.add_procedureversion"}
+        >
+        {canCreateNewRevision && (
+          <Link
+            to={`/procedures/edit/${procedure.id}`}
+            className={"details-edit-button"}
+          >
+            Create new revision
+          </Link>
+        )}
+        </Can>
+
       </div>
 
       <div className={"procedure-details-content"}>

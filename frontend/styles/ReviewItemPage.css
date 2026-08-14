@@ -1,0 +1,18 @@
+.review-item-page {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 24px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.review-item-detail {
+  min-width: 0;
+}
+
+.review-item-sidebar {
+  min-width: 0;
+}

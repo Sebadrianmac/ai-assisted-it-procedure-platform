@@ -30,8 +30,8 @@ const ProcedureVersionHistory = ({
   onVersionSelect,
 }) => {
   return (
-    <section className={"procedure-history-card"}>
-      <div className={"version-history-header"}>
+    <section className="procedure-history-card">
+      <div className="version-history-header">
         <div>
           <p className="card-label">History</p>
 

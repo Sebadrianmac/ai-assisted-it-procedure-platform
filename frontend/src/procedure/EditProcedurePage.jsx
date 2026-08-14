@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
+import ProcedureReviewComment from "../procedure/ProcedureReviewComment"
 import api from "../api/api";
 import "../../styles/ProcedureEdit.css";
 
@@ -492,6 +492,11 @@ const EditProcedurePage = ({ permissions = [] }) => {
           </section>
         </div>
       )}
+    {procedure?.active_version?.review_comment && (
+      <ProcedureReviewComment
+        version={procedure.active_version}
+      />
+    )}
     </section>
   );
 };

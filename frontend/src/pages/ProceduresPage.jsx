@@ -1,15 +1,10 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import "../../styles/ProcedureTable.css";
 import api from "../api/api";
 import ProcedureItem from "../procedure/ProcedureItem";
 import SearchInput from "./components/SearchInput";
-
 
 const STATUS_ORDER = {
   in_progress: 0,
@@ -19,90 +14,50 @@ const STATUS_ORDER = {
   rejected: 4,
 };
 
-
-const ProceduresPage = ({
-  permissions = [],
-}) => {
+const ProceduresPage = ({ permissions = [] }) => {
   const navigate = useNavigate();
 
-  const [procedures, setProcedures] =
-    useState([]);
-  const [isLoading, setIsLoading] =
-    useState(true);
-  const [error, setError] =
-    useState("");
-  const [deleteError, setDeleteError] =
-    useState("");
-  const [searchQuery, setSearchQuery] =
-    useState("");
-  const [openActionsId, setOpenActionsId] =
-    useState(null);
-  const [deletingProcedureId, setDeletingProcedureId] =
-    useState(null);
+  const [procedures, setProcedures] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [openActionsId, setOpenActionsId] = useState(null);
+  const [deletingProcedureId, setDeletingProcedureId] = useState(null);
 
-
-  const canCreateProcedure =
-    permissions.includes(
-      "procedures.add_procedure"
-    );
-
+  const canCreateProcedure = permissions.includes("procedures.add_procedure");
 
   useEffect(() => {
-    const controller =
-      new AbortController();
+    const controller = new AbortController();
 
     const loadProcedures = async () => {
       try {
         setIsLoading(true);
         setError("");
 
-        const response = await api.get(
-          "/api/procedures/",
-          {
-            signal: controller.signal,
-          }
-        );
+        const response = await api.get("/api/procedures/", {
+          signal: controller.signal,
+        });
 
-        setProcedures(
-          Array.isArray(response.data)
-            ? response.data
-            : []
-        );
+        setProcedures(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        if (
-          error.code === "ERR_CANCELED"
-        ) {
+        if (error.code === "ERR_CANCELED") {
           return;
         }
 
-        const responseStatus =
-          error.response?.status;
+        const responseStatus = error.response?.status;
 
         if (responseStatus === 401) {
-          setError(
-            "You need to log in."
-          );
-        } else if (
-          responseStatus === 403
-        ) {
-          setError(
-            "You do not have permission " +
-            "to view procedures."
-          );
+          setError("You need to log in.");
+        } else if (responseStatus === 403) {
+          setError("You do not have permission " + "to view procedures.");
         } else {
-          setError(
-            "Failed to load procedures."
-          );
+          setError("Failed to load procedures.");
         }
 
-        console.error(
-          "Failed to load procedures:",
-          error
-        );
+        console.error("Failed to load procedures:", error);
       } finally {
-        if (
-          !controller.signal.aborted
-        ) {
+        if (!controller.signal.aborted) {
           setIsLoading(false);
         }
       }
@@ -115,205 +70,109 @@ const ProceduresPage = ({
     };
   }, []);
 
+  const preparedProcedures = useMemo(() => {
+    return procedures.map((procedure) => {
+      const displayVersion =
+        procedure.active_version ?? procedure.current_version ?? null;
 
-  const preparedProcedures =
-    useMemo(() => {
-      return procedures.map(
-        (procedure) => {
-          const displayVersion =
-            procedure.active_version ??
-            procedure.current_version ??
-            null;
+      return {
+        ...procedure,
 
-          return {
-            ...procedure,
+        title: displayVersion?.title ?? procedure.title ?? "",
 
-            title:
-              displayVersion?.title ??
-              procedure.title ??
-              "",
+        description: displayVersion?.description ?? procedure.description ?? "",
 
-            description:
-              displayVersion?.description ??
-              procedure.description ??
-              "",
+        status: displayVersion?.status ?? procedure.status ?? null,
 
-            status:
-              displayVersion?.status ??
-              procedure.status ??
-              null,
+        status_label:
+          displayVersion?.status_label ?? procedure.status_label ?? "Unknown",
 
-            status_label:
-              displayVersion?.status_label ??
-              procedure.status_label ??
-              "Unknown",
+        version_number:
+          displayVersion?.version_number ?? procedure.version_number ?? null,
 
-            version_number:
-              displayVersion
-                ?.version_number ??
-              procedure.version_number ??
-              null,
+        display_version: displayVersion,
+      };
+    });
+  }, [procedures]);
 
-            display_version:
-              displayVersion,
-          };
-        }
-      );
-    }, [procedures]);
+  const filteredProcedures = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
 
+    const result = !query
+      ? preparedProcedures
+      : preparedProcedures.filter((procedure) => {
+          const title = procedure.title?.toLowerCase() ?? "";
 
-  const filteredProcedures =
-    useMemo(() => {
-      const query =
-        searchQuery
-          .trim()
-          .toLowerCase();
+          const description = procedure.description?.toLowerCase() ?? "";
 
-      const result = !query
-        ? preparedProcedures
-        : preparedProcedures.filter(
-            (procedure) => {
-              const title =
-                procedure.title
-                  ?.toLowerCase() ?? "";
+          const statusLabel = procedure.status_label?.toLowerCase() ?? "";
 
-              const description =
-                procedure.description
-                  ?.toLowerCase() ?? "";
+          const versionNumber =
+            procedure.version_number?.toString().toLowerCase() ?? "";
 
-              const statusLabel =
-                procedure.status_label
-                  ?.toLowerCase() ?? "";
-
-              const versionNumber =
-                procedure.version_number
-                  ?.toString()
-                  .toLowerCase() ?? "";
-
-              return (
-                title.includes(query) ||
-                description.includes(query) ||
-                statusLabel.includes(query) ||
-                versionNumber.includes(query)
-              );
-            }
-          );
-
-      return [...result].sort(
-        (
-          firstProcedure,
-          secondProcedure
-        ) => {
-          const firstStatusOrder =
-            STATUS_ORDER[
-              firstProcedure.status
-            ] ?? 999;
-
-          const secondStatusOrder =
-            STATUS_ORDER[
-              secondProcedure.status
-            ] ?? 999;
-
-          if (
-            firstStatusOrder !==
-            secondStatusOrder
-          ) {
-            return (
-              firstStatusOrder -
-              secondStatusOrder
-            );
-          }
           return (
-            new Date(
-              secondProcedure.updated_at
-            ).getTime() -
-            new Date(
-              firstProcedure.updated_at
-            ).getTime()
+            title.includes(query) ||
+            description.includes(query) ||
+            statusLabel.includes(query) ||
+            versionNumber.includes(query)
           );
-        }
+        });
+
+    return [...result].sort((firstProcedure, secondProcedure) => {
+      const firstStatusOrder = STATUS_ORDER[firstProcedure.status] ?? 999;
+
+      const secondStatusOrder = STATUS_ORDER[secondProcedure.status] ?? 999;
+
+      if (firstStatusOrder !== secondStatusOrder) {
+        return firstStatusOrder - secondStatusOrder;
+      }
+      return (
+        new Date(secondProcedure.updated_at).getTime() -
+        new Date(firstProcedure.updated_at).getTime()
       );
-    }, [
-      searchQuery,
-      preparedProcedures,
-    ]);
+    });
+  }, [searchQuery, preparedProcedures]);
 
-
-  const deleteProcedure = async (
-    procedureId
-  ) => {
+  const deleteProcedure = async (procedureId) => {
     try {
       setDeleteError("");
-      setDeletingProcedureId(
-        procedureId
-      );
+      setDeletingProcedureId(procedureId);
 
-      await api.delete(
-        `/api/procedures/${procedureId}/`
-      );
+      await api.delete(`/api/procedures/${procedureId}/`);
 
-      setProcedures(
-        (currentProcedures) =>
-          currentProcedures.filter(
-            (procedure) =>
-              procedure.id !==
-              procedureId
-          )
+      setProcedures((currentProcedures) =>
+        currentProcedures.filter((procedure) => procedure.id !== procedureId),
       );
 
       setOpenActionsId(null);
     } catch (error) {
-      const responseStatus =
-        error.response?.status;
+      const responseStatus = error.response?.status;
 
       if (responseStatus === 401) {
+        setDeleteError("You need to log in.");
+      } else if (responseStatus === 403) {
         setDeleteError(
-          "You need to log in."
+          "You do not have permission " + "to delete this procedure.",
         );
-      } else if (
-        responseStatus === 403
-      ) {
-        setDeleteError(
-          "You do not have permission " +
-          "to delete this procedure."
-        );
-      } else if (
-        responseStatus === 404
-      ) {
-        setDeleteError(
-          "Procedure was not found."
-        );
+      } else if (responseStatus === 404) {
+        setDeleteError("Procedure was not found.");
       } else {
-        setDeleteError(
-          "Failed to delete procedure."
-        );
+        setDeleteError("Failed to delete procedure.");
       }
 
-      console.error(
-        "Failed to delete procedure:",
-        error
-      );
+      console.error("Failed to delete procedure:", error);
     } finally {
       setDeletingProcedureId(null);
     }
   };
 
-
   if (isLoading) {
-    return (
-      <p>Loading procedures...</p>
-    );
+    return <p>Loading procedures...</p>;
   }
-
 
   if (error) {
-    return (
-      <p className="procedures-error">
-        {error}
-      </p>
-    );
+    return <p className="procedures-error">{error}</p>;
   }
-
 
   return (
     <section className="procedures-section">
@@ -327,43 +186,23 @@ const ProceduresPage = ({
         <div className="procedures-controls">
           <SearchInput
             searchQuery={searchQuery}
-            setSearchQuery={
-              setSearchQuery
-            }
-            placeholder={
-              "Search procedures..."
-            }
+            setSearchQuery={setSearchQuery}
+            placeholder={"Search procedures..."}
           />
 
-          <button
-            type="button"
-            className={
-              "procedure-control-button"
-            }
-          >
+          <button type="button" className={"procedure-control-button"}>
             Filter
           </button>
 
-          <button
-            type="button"
-            className={
-              "procedure-control-button"
-            }
-          >
+          <button type="button" className={"procedure-control-button"}>
             Sort
           </button>
 
           {canCreateProcedure && (
             <button
               type="button"
-              className={
-                "procedure-create-button"
-              }
-              onClick={() =>
-                navigate(
-                  "/procedure/create"
-                )
-              }
+              className={"procedure-create-button"}
+              onClick={() => navigate("/procedure/create")}
             >
               Create procedure
             </button>
@@ -371,55 +210,21 @@ const ProceduresPage = ({
         </div>
       </div>
 
+      {deleteError && <p className="procedures-error">{deleteError}</p>}
 
-      {deleteError && (
-        <p className="procedures-error">
-          {deleteError}
-        </p>
-      )}
-
-
-      <div
-        className={
-          "procedures-table-container"
-        }
-      >
+      <div className={"procedures-table-container"}>
         {procedures.length === 0 ? (
           <p>No procedures found.</p>
-        ) : filteredProcedures.length ===
-          0 ? (
-          <p>
-            No procedures match your
-            search.
-          </p>
+        ) : filteredProcedures.length === 0 ? (
+          <p>No procedures match your search.</p>
         ) : (
           <table className="procedures-table">
             <colgroup>
-              <col
-                className={
-                  "column-procedure"
-                }
-              />
-              <col
-                className={
-                  "column-version"
-                }
-              />
-              <col
-                className={
-                  "column-status"
-                }
-              />
-              <col
-                className={
-                  "column-created"
-                }
-              />
-              <col
-                className={
-                  "column-actions"
-                }
-              />
+              <col className={"column-procedure"} />
+              <col className={"column-version"} />
+              <col className={"column-status"} />
+              <col className={"column-created"} />
+              <col className={"column-actions"} />
             </colgroup>
 
             <thead>
@@ -433,42 +238,24 @@ const ProceduresPage = ({
             </thead>
 
             <tbody>
-              {filteredProcedures.map(
-                (procedure) => (
-                  <ProcedureItem
-                    key={procedure.id}
-                    procedure={procedure}
-                    permissions={
-                      permissions
-                    }
-                    isActionsOpen={
-                      openActionsId ===
-                      procedure.id
-                    }
-                    isDeleting={
-                      deletingProcedureId ===
-                      procedure.id
-                    }
-                    onActionsClose={() => {
-                      setOpenActionsId(
-                        null
-                      );
-                    }}
-                    onActionsToggle={() => {
-                      setOpenActionsId(
-                        (currentId) =>
-                          currentId ===
-                          procedure.id
-                            ? null
-                            : procedure.id
-                      );
-                    }}
-                    onDeleteProc={
-                      deleteProcedure
-                    }
-                  />
-                )
-              )}
+              {filteredProcedures.map((procedure) => (
+                <ProcedureItem
+                  key={procedure.id}
+                  procedure={procedure}
+                  permissions={permissions}
+                  isActionsOpen={openActionsId === procedure.id}
+                  isDeleting={deletingProcedureId === procedure.id}
+                  onActionsClose={() => {
+                    setOpenActionsId(null);
+                  }}
+                  onActionsToggle={() => {
+                    setOpenActionsId((currentId) =>
+                      currentId === procedure.id ? null : procedure.id,
+                    );
+                  }}
+                  onDeleteProc={deleteProcedure}
+                />
+              ))}
             </tbody>
           </table>
         )}
@@ -476,6 +263,5 @@ const ProceduresPage = ({
     </section>
   );
 };
-
 
 export default ProceduresPage;

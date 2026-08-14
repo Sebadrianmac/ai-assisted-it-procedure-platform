@@ -10,6 +10,9 @@ const Sidebar = ({ permissions = [] }) => {
   const canViewAdministration = 
     permissions.includes("users.view_user") ||
     permissions.includes("auth.view_group");
+
+
+  const canVieReviewProc = permissions.includes("procedures.approve_procedure");
   return (
     <aside className="sidebar">
       <h2>IT Platform</h2>
@@ -32,6 +35,22 @@ const Sidebar = ({ permissions = [] }) => {
             Add Procedure
           </NavLink>
         </Can>
+
+      {canVieReviewProc && (
+        <div>
+          <Can
+          permission={
+            "procedures.approve_procedure"
+          }
+          permissions={permissions}
+        >
+          <NavLink to="/review/">
+            Review Procedure
+          </NavLink>
+          </Can>
+
+        </div>
+      )}
 
         {canViewAdministration && (
   <div>

@@ -6,6 +6,8 @@ import { ACCESS_TOKEN, REFRESH_TOKEN } from "./api/constants";
 import LoginPage from "./pages/LoginPage";
 import ProceduresPage from "./pages/ProceduresPage";
 import ProcedureCreate from "./procedure/ProcedureCreate";
+import ReviewProcedurePage from "./pages/ReviewProcedurePage";
+import ReviewItemDetail from "./procedure/ReviewItemDetail";
 import ProcedureDetailsPage from "./procedure/ProcedureDetailsPage";
 import EditProcedurePage from "./procedure/EditProcedurePage";
 import ProfilePage from "./pages/ProfilePage";
@@ -16,6 +18,8 @@ import UserDetailsPage from "./users/UserDetailsPage";
 import UserCreate from "./users/UserCreate";
 import UserEditPage from "./users/UserEditPage";
 import RolePage from "./pages/RolePage";
+
+
 
 function App() {
   const [user, setUser] = useState(null);
@@ -86,6 +90,26 @@ function App() {
                 user?.permissions || []
               }
           />}
+        />
+        <Route
+          path="/review/"
+          element={
+            <ReviewProcedurePage
+              permissions={
+                user?.permissions || []
+              }
+            />
+          }
+        />
+        <Route
+          path="/review/:reviewProcedureId"
+          element={
+            <ReviewItemDetail
+              permissions={
+                user?.permissions || []
+              }
+            />
+          }
         />
         <Route
           path="/procedures/:procedureId"
