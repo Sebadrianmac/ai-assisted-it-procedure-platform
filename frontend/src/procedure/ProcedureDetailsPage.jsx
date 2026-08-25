@@ -123,31 +123,30 @@ const ProcedureDetailsPage = ({ permissions = [] }) => {
         </button>
         <Can
           permissions={permissions}
-          permission = "procedures.change_procedureversion" 
+          permission="procedures.change_procedureversion"
         >
-        {canEditSelectedVersion && (
-          <Link
-            to={`/procedures/edit/${procedure.id}`}
-            className={"details-edit-button"}
-          >
-            Edit procedure
-          </Link>
-        )}
+          {canEditSelectedVersion && (
+            <Link
+              to={`/procedures/edit/${procedure.id}`}
+              className={"details-edit-button"}
+            >
+              Edit procedure
+            </Link>
+          )}
         </Can>
-        <Can 
+        <Can
           permissions={permissions}
           permission={"procedures.add_procedureversion"}
         >
-        {canCreateNewRevision && (
-          <Link
-            to={`/procedures/edit/${procedure.id}`}
-            className={"details-edit-button"}
-          >
-            Create new revision
-          </Link>
-        )}
+          {canCreateNewRevision && (
+            <Link
+              to={`/procedures/edit/${procedure.id}?mode=new-revision`}
+              className="details-edit-button"
+            >
+              Create new revision
+            </Link>
+          )}
         </Can>
-
       </div>
 
       <div className={"procedure-details-content"}>

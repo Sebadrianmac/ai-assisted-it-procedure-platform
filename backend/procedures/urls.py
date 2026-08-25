@@ -7,5 +7,5 @@ urlpatterns = [
     path("review/", views.procedure_review_list, name="procedure-review-list"),
     path('<int:procedure_id>/', views.procedure_details, name="procedure-CRUD"),
     path("review/<int:version_id>/", views.procedure_review_detail, name="procedure-review-list"),
-
+    path("<int:procedure_id>/revisions/", views.procedure_revision_create, name="procedure-revision-create"),
 ]

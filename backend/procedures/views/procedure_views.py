@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import Prefetch
 from django.utils import timezone
-
+from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import (
     api_view,
@@ -15,9 +15,10 @@ from rest_framework.response import Response
 from ..models import (
     Procedure,
     ProcedureVersion,
+    ProcedureStep,
     StatusChoices,
 )
-from ..permissions import ProcedurePermission
+from ..permissions import ProcedurePermission, CanAddProcedureVersion
 from ..serializers import (
     serialize_procedure_details,
     serialize_procedure_list_item,
@@ -301,41 +302,67 @@ def update_procedure(
         )
 
     if action == "submit_for_approval":
-        change_type = request.data.get(
-            "change_type"
-        )
-
-        if change_type not in [
-            ProcedureVersion.ChangeType.MINOR,
-            ProcedureVersion.ChangeType.MAJOR,
-        ]:
-            return Response(
-                {
-                    "change_type": (
-                        "Change type must be "
-                        "minor or major."
-                    ),
-                },
-                status=(
-                    status.HTTP_400_BAD_REQUEST
-                ),
-            )
-
         if active_version.version_number is None:
-            major, minor = (
-                calculate_next_version(
-                    procedure,
-                    change_type,
+            current_version = (
+                ProcedureVersion.objects
+                .filter(
+                    procedure=procedure,
+                    is_current=True,
+                    status=StatusChoices.COMPLETED,
                 )
+                .first()
             )
 
-            active_version.version_major = major
-            active_version.version_minor = minor
+            if current_version is None:
+                active_version.version_major = 1
+                active_version.version_minor = 0
+                active_version.change_type = None
 
-        active_version.change_type = change_type
+            else:
+                change_type = request.data.get(
+                    "change_type"
+                )
+
+                if change_type not in [
+                    ProcedureVersion
+                    .ChangeType.MINOR,
+                    ProcedureVersion
+                    .ChangeType.MAJOR,
+                ]:
+                    return Response(
+                        {
+                            "change_type": (
+                                "Change type must be "
+                                "minor or major."
+                            ),
+                        },
+                        status=(
+                            status
+                            .HTTP_400_BAD_REQUEST
+                        ),
+                    )
+
+                major, minor = (
+                    calculate_next_version(
+                        procedure,
+                        change_type,
+                    )
+                )
+
+                active_version.version_major = (
+                    major
+                )
+                active_version.version_minor = (
+                    minor
+                )
+                active_version.change_type = (
+                    change_type
+                )
+
         active_version.status = (
             StatusChoices.CREATED
         )
+
         active_version.submitted_at = (
             timezone.now()
         )
@@ -351,4 +378,148 @@ def update_procedure(
             load_procedure(procedure.id)
         ),
         status=status.HTTP_200_OK,
+    )
+
+@api_view([
+    "POST",
+])
+@permission_classes([
+    IsAuthenticated,
+    CanAddProcedureVersion,
+])
+@transaction.atomic
+def procedure_revision_create(request, procedure_id):
+    procedure =  get_object_or_404(
+        Procedure,
+        id=procedure_id
+        )
+    current_version = (
+        procedure.versions.filter(
+            is_current = True,
+            status = StatusChoices.COMPLETED
+        )
+        .first()
+    )
+    if current_version is None:
+        return Response(
+            {
+                "message": "Procedure has no current approved version."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    active_revision_exists = (
+        procedure.versions
+        .filter(
+            status__in=[
+                StatusChoices.IN_PROGRESS,
+                StatusChoices.CREATED,
+                StatusChoices.CLARIFICATION_NEEDED,
+            ]
+        ).exists()
+
+    )
+    if active_revision_exists: 
+        return Response(
+            {
+                "message": "Procedure already has an active revision."
+            },
+            status=status.HTTP_409_CONFLICT
+        )
+    validated_content, validation_error = (
+        validate_procedure_content(request.data)
+    )
+    if validation_error:
+        return validation_error
+
+    action = request.data.get("action")
+    if action not in [
+        "save_draft",
+        "submit_for_approval",
+    ]:
+        return Response(
+            {
+                "action": (
+                    "Action must be save_draft "
+                    "or submit_for_approval."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    change_type = None
+    new_version_major = None
+    new_version_minor = None
+
+    if action == "submit_for_approval":
+        change_type = request.data.get(
+            "change_type"
+        )
+
+        if change_type == (
+            ProcedureVersion.ChangeType.MAJOR
+        ):
+            new_version_major = (
+                current_version.version_major
+                + 1
+            )
+            new_version_minor = 0
+
+        elif change_type == (
+            ProcedureVersion.ChangeType.MINOR
+        ):
+            new_version_major = (
+                current_version.version_major
+            )
+            new_version_minor = (
+                current_version.version_minor
+                + 1
+            )
+    
+        else:
+            return Response({
+                "change_type": "Change type must be minor or major."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+            )
+        new_status = StatusChoices.CREATED
+        submitted_at = timezone.now()
+
+    elif action == "save_draft":
+        new_status = StatusChoices.IN_PROGRESS
+        submitted_at = None
+
+    new_version = (
+        ProcedureVersion.objects.create(
+            procedure=procedure,
+            title=validated_content["title"],
+            description=(
+                validated_content["description"]
+            ),
+            status=new_status,
+            change_type=change_type,
+            version_major= new_version_major,
+            version_minor = new_version_minor,
+            is_current = False,
+            created_by = request.user,
+            submitted_at=submitted_at,
+        )
+    )
+    for step_data in validated_content["steps"]:
+        ProcedureStep.objects.create(
+            procedure_version=new_version,
+            step_number=step_data[
+                "step_number"
+            ],
+            description=step_data[
+                "description"
+            ],
+        )
+    procedure.save(
+        update_fields=["updated_at"]
+    )
+    return Response(
+        serialize_procedure_details(
+            procedure
+        ),
+        status=status.HTTP_201_CREATED,
     )

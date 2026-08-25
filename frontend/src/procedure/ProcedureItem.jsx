@@ -1,6 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
+
 import { Eye, Pencil, Trash2 } from "lucide-react";
+
 import Can from "../pages/components/Can";
+
 import "../../styles/ProcedureMenu.css";
 
 const formatDate = (dateValue) => {
@@ -43,22 +46,21 @@ const ProcedureItem = ({
 
   const displayedAuthor = authorName || procedure.created_by?.username || "—";
 
+  const activeVersion = procedure.active_version ?? null;
+
+  const currentVersion = procedure.current_version ?? null;
+
   const displayVersion =
-    procedure.display_version ??
-    procedure.active_version ??
-    procedure.current_version ??
-    null;
+    procedure.display_version ?? activeVersion ?? currentVersion ?? null;
 
   const displayStatus = procedure.status ?? displayVersion?.status ?? null;
 
   const displayStatusLabel =
     procedure.status_label ?? displayVersion?.status_label ?? "Unknown";
 
-  const displayVersionNumber =
-    procedure.version_number ?? displayVersion?.version_number ?? null;
-
-  const versionLabel =
-    displayVersionNumber ?? (displayStatus === "in_progress" ? "Draft" : "—");
+  const versionLabel = activeVersion
+    ? (activeVersion.version_number ?? "Draft")
+    : (currentVersion?.version_number ?? "—");
 
   const canEditCurrentState = ["in_progress", "clarification_needed"].includes(
     displayStatus,
@@ -103,13 +105,20 @@ const ProcedureItem = ({
       </td>
 
       <td>
-        <span className="procedure-version">{versionLabel}</span>
-
-        {procedure.active_version && procedure.current_version && (
-          <span className={"procedure-version-note"}>
-            Current: {procedure.current_version.version_number ?? "—"}
+        <div className="procedure-version-cell">
+          <span className="procedure-version">
+            {versionLabel}
           </span>
-        )}
+
+          {activeVersion &&
+            currentVersion && (
+              <span className="procedure-version-note">
+                Current:{" "}
+                {currentVersion
+                  .version_number ?? "—"}
+              </span>
+            )}
+        </div>
       </td>
 
       <td>
@@ -190,7 +199,7 @@ const ProcedureItem = ({
             >
               <button
                 type="button"
-                className={"delete-menu-action"}
+                className="delete-menu-action"
                 onClick={handleDelete}
                 disabled={isDeleting}
               >

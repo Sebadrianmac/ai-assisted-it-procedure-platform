@@ -31,3 +31,13 @@ class CanApproveProcedure(BasePermission):
         return request.user.has_perm(
             "procedures.approve_procedure"
         )
+class CanAddProcedureVersion(BasePermission):
+    message = (
+        "You do not have permission "
+        "to create procedure versions."
+    )
+
+    def has_permission(self, request, view):
+        return request.user.has_perm(
+            "procedures.add_procedureversion"
+        )
