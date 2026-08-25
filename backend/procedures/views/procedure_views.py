@@ -172,7 +172,6 @@ def procedure_details(
         status=status.HTTP_204_NO_CONTENT,
     )
 
-
 @transaction.atomic
 def update_procedure(
     request,
@@ -284,31 +283,24 @@ def update_procedure(
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    active_version.title = (
-        validated_data["title"]
-    )
-    active_version.description = (
-        validated_data["description"]
-    )
-
-    replace_version_steps(
-        active_version,
-        validated_data["steps"],
-    )
-
     if action == "save_draft":
         active_version.status = (
             StatusChoices.IN_PROGRESS
         )
 
     if action == "submit_for_approval":
-        if active_version.version_number is None:
+        if (
+            active_version.version_number
+            is None
+        ):
             current_version = (
                 ProcedureVersion.objects
                 .filter(
                     procedure=procedure,
                     is_current=True,
-                    status=StatusChoices.COMPLETED,
+                    status=(
+                        StatusChoices.COMPLETED
+                    ),
                 )
                 .first()
             )
@@ -366,6 +358,18 @@ def update_procedure(
         active_version.submitted_at = (
             timezone.now()
         )
+    active_version.title = (
+        validated_data["title"]
+    )
+
+    active_version.description = (
+        validated_data["description"]
+    )
+
+    replace_version_steps(
+        active_version,
+        validated_data["steps"],
+    )
 
     active_version.save()
 
@@ -379,7 +383,6 @@ def update_procedure(
         ),
         status=status.HTTP_200_OK,
     )
-
 @api_view([
     "POST",
 ])
