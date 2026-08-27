@@ -85,7 +85,7 @@ ROLE_PERMISSIONS = {
 
         "tasks.view_task",
         "tasks.change_task",
-        
+
         "tasks.view_procedureexecution",
 
         "procedures.view_document",
@@ -102,6 +102,8 @@ ROLE_PERMISSIONS = {
 
         "tasks.add_procedureexecution",
         "tasks.view_procedureexecution",
+
+        "procedures.view_document",
     ],
 
     "Auditor": [
@@ -111,6 +113,8 @@ ROLE_PERMISSIONS = {
 
         "tasks.view_task",
         "tasks.view_procedureexecution",
+
+        "procedures.view_document",
     ],
 
     "Customer": [

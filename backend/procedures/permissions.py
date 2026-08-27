@@ -21,6 +21,8 @@ class ProcedurePermission(BasePermission):
                 "procedures.delete_procedure"
             )
         return False
+
+    
 class CanApproveProcedure(BasePermission):
     message = (
         "You do not have permission "
@@ -31,6 +33,8 @@ class CanApproveProcedure(BasePermission):
         return request.user.has_perm(
             "procedures.approve_procedure"
         )
+
+    
 class CanAddProcedureVersion(BasePermission):
     message = (
         "You do not have permission "
@@ -41,3 +45,26 @@ class CanAddProcedureVersion(BasePermission):
         return request.user.has_perm(
             "procedures.add_procedureversion"
         )
+
+    
+class DocumentPermission(BasePermission):
+    def has_permission(self, request, view):
+        if request.method == "GET":
+            return request.user.has_perm(
+                "procedures.view_document"
+            )
+
+        if request.method == "POST":
+            return request.user.has_perm(
+                "procedures.add_document"
+            )
+        if request.method == "PATCH":
+            return request.user.has_perm(
+                "procedures.change_document"
+            )
+
+        if request.method == "DELETE":
+            return request.user.has_perm(
+                "procedures.delete_document"
+            )
+        return False

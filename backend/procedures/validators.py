@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 
-
+from .models import Document
 def validate_procedure_content(
     request_data,
 ):
@@ -127,3 +127,83 @@ def validate_procedure_content(
         "description": description,
         "steps": validated_steps,
     }, None
+
+def validate_document_content(request_data, request_files):
+    title = request_data.get("title")
+    document_type = request_data.get("document_type")
+    description = request_data.get("description", "" )
+    external_url = request_data.get("external_url", "")
+    file = request_files.get("file")
+
+    if not isinstance(title, str): 
+        return None, Response({
+            "title": "Title must be a string"
+        },
+        status=status.HTTP_400_BAD_REQUEST
+        )
+    title = title.strip()
+
+    if not title:
+        return None, Response({
+            "title": "Title is required" 
+        },
+        status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if (
+        document_type
+        not in Document.DocumentType.values
+    ):
+        return None, Response(
+            {
+                "document_type": (
+                    "Invalid document type."
+                ),
+                "allowed_values": (
+                    Document.DocumentType.values
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not isinstance(description, str):
+        return None, Response(
+            {
+                "description": (
+                    "Description must be a string."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not isinstance(external_url, str):
+        return None, Response(
+            {
+                "external_url": (
+                    "External URL must be a string."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    description = description.strip()
+    external_url = external_url.strip()
+    if file is None and not external_url:
+        return None, Response(
+        {
+            "document": (
+                "A file or external URL "
+                "is required."
+            ),
+        },
+        status=status.HTTP_400_BAD_REQUEST,
+    )
+    validated_data = {
+        "title": title,
+        "document_type": document_type,
+        "description": description,
+        "file": file,
+        "external_url": external_url,
+    }
+
+    return validated_data, None

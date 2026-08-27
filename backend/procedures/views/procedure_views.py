@@ -29,7 +29,7 @@ from ..services import (
     replace_version_steps,
 )
 from ..validators import (
-    validate_procedure_content,
+    validate_procedure_content
 )
 
 
