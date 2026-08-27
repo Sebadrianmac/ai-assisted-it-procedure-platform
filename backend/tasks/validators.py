@@ -8,20 +8,27 @@ from django.shortcuts import get_object_or_404
 
 
 
-def validate_task_content(request_data ,task, current_user):
-    is_assigned_user = (
-        task.assigned_to_id == current_user.id
-    )
-    is_assigned_role = (
-        task.assigned_role_id is not None
-        and current_user.groups.filter(
-            id=task.assigned_role_id
-        ).exists()
-    )
-    if not (
-        is_assigned_user
-        or is_assigned_role
-    ):
+def validate_task_content(
+    request_data,
+    task,
+    current_user,
+):
+    if task.assigned_to_id is not None:
+        can_change_task = (
+            task.assigned_to_id == current_user.id
+        )
+
+    elif task.assigned_role_id is not None:
+        can_change_task = (
+            current_user.groups.filter(
+                id=task.assigned_role_id
+            ).exists()
+        )
+
+    else:
+        can_change_task = False
+
+    if not can_change_task:
         return None, Response(
             {
                 "detail": (
