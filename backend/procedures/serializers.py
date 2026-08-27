@@ -18,6 +18,11 @@ def serialize_step(step):
         "id": step.id,
         "step_number": step.step_number,
         "description": step.description,
+        "documents": [
+            serialize_document(document)
+            for document
+            in step.documents.all()
+        ],
     }
 
 
@@ -221,4 +226,29 @@ def serialize_procedure_details(procedure):
             )
             for version in procedure.versions.all()
         ],
+    }
+def serialize_document(document):
+    return {
+        "id": document.id,
+        "title": document.title,
+        "document_type": (
+            document.document_type
+        ),
+        "document_type_label": (
+            document.get_document_type_display()
+        ),
+        "description": document.description,
+        "file_url": (
+            document.file.url
+            if document.file
+            else None
+        ),
+        "external_url": (
+            document.external_url
+        ),
+        "uploaded_by": serialize_user(
+            document.uploaded_by
+        ),
+        "created_at": document.created_at,
+        "updated_at": document.updated_at,
     }

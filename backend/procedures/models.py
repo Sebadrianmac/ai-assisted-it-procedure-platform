@@ -298,7 +298,7 @@ class ProcedureStep(models.Model):
     step_number = models.PositiveIntegerField()
 
     description = models.TextField()
-    document = models.ManyToManyField(
+    documents = models.ManyToManyField(
         Document,
         related_name="procedure_steps",
         blank=True

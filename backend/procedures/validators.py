@@ -83,6 +83,7 @@ def validate_procedure_content(
             "description",
             "",
         )
+        
 
         if not isinstance(
             step_description,
@@ -116,10 +117,76 @@ def validate_procedure_content(
                     status.HTTP_400_BAD_REQUEST
                 ),
             )
+        document_ids = step_data.get(
+            "document_ids",
+            [],
+        )
+
+        if not isinstance(document_ids, list):
+            return None, Response(
+                {
+                    "steps": (
+                        f"Step {index} document_ids "
+                        "must be a list."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        invalid_document_ids = [
+            document_id
+            for document_id in document_ids
+            if (
+                not isinstance(document_id, int)
+                or isinstance(document_id, bool)
+            )
+        ]
+
+        if invalid_document_ids:
+            return None, Response(
+                {
+                    "steps": (
+                        f"Step {index} document IDs "
+                        "must be integers."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        unique_document_ids = list(
+            dict.fromkeys(document_ids)
+        )
+        documents = list(
+            Document.objects.filter(
+                id__in=unique_document_ids
+            )
+        )
+        found_document_ids = {
+            document.id
+            for document in documents
+        }
+
+        missing_document_ids = (
+            set(unique_document_ids)
+            - found_document_ids
+        )
+
+        if missing_document_ids:
+            return None, Response(
+                {
+                    "steps": (
+                        f"Step {index} contains "
+                        "unknown document IDs."
+                    ),
+                    "missing_document_ids": sorted(
+                        missing_document_ids
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         validated_steps.append({
             "step_number": index,
             "description": step_description,
+            "documents": documents,
         })
 
     return {
@@ -127,6 +194,7 @@ def validate_procedure_content(
         "description": description,
         "steps": validated_steps,
     }, None
+
 
 def validate_document_content(request_data, request_files):
     title = request_data.get("title")

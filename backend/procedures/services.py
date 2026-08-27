@@ -7,7 +7,6 @@ from .models import (
     ProcedureVersion,
 )
 
-
 def load_procedure(procedure_id):
     return get_object_or_404(
         Procedure.objects
@@ -21,14 +20,15 @@ def load_procedure(procedure_id):
                         "created_by",
                         "reviewed_by",
                     )
-                    .prefetch_related("steps")
+                    .prefetch_related(
+                        "steps__documents__uploaded_by"
+                    )
                     .order_by("-created_at")
                 ),
             )
         ),
         id=procedure_id,
     )
-
 
 def calculate_next_version(
     procedure,
@@ -108,20 +108,24 @@ def calculate_next_version(
 
 
 def replace_version_steps(
-    version,
-    steps,
+    procedure_version,
+    validated_steps,
 ):
-    version.steps.all().delete()
+    procedure_version.steps.all().delete()
 
-    ProcedureStep.objects.bulk_create([
-        ProcedureStep(
-            procedure_version=version,
-            step_number=step[
+    for step_data in validated_steps:
+        step = ProcedureStep.objects.create(
+            procedure_version=(
+                procedure_version
+            ),
+            step_number=step_data[
                 "step_number"
             ],
-            description=step[
+            description=step_data[
                 "description"
             ],
         )
-        for step in steps
-    ])
+
+        step.documents.set(
+            step_data["documents"]
+        )

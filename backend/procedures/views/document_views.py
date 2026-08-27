@@ -141,6 +141,15 @@ def document_list(request):
             status=status.HTTP_201_CREATED,
         )
 
+@api_view(["PATCH"])
+@permission_classes([
+    IsAuthenticated,
+    DocumentPermission
+])
+def document_update(request):
+    if not request.data("step_id"):
+        return
+
 @api_view(["DELETE"])
 @permission_classes([
     IsAuthenticated,

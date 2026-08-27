@@ -20,5 +20,5 @@ __all__ = [
     "status_list",
     "procedure_revision_create"
     "document_list",
-    "document_delete"
+    "document_delete",
 ]
