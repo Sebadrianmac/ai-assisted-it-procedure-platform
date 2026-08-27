@@ -237,6 +237,56 @@ class ProcedureVersion(models.Model):
             ),
         ]
 
+class Document(models.Model):
+    class DocumentType(models.TextChoices):
+        POLICY = (
+            "policy",
+            "Policy",
+        )
+        STANDARD = (
+            "standard",
+            "Standard",
+        )
+        CONTRACT = (
+            "contract",
+            "Contract",
+        )
+        REGULATION = (
+            "regulation",
+            "Regulation",
+        )
+        INTERNAL = (
+            "internal",
+            "Internal",
+        ) 
+
+    title = models.CharField(max_length=255)
+
+    document_type = models.CharField(
+        max_length=20,
+        choices=DocumentType.choices,
+        ) 
+    description = models.TextField(blank=True)
+    
+    file = models.FileField(
+        blank=True, 
+        null=True,
+        upload_to="procedure_documents/"
+        )
+
+    external_url = models.URLField(blank=True)
+    uploaded_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="uploaded_procedure_documents"
+        )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return {self.title}
+
 
 class ProcedureStep(models.Model):
     procedure_version = models.ForeignKey(
@@ -248,6 +298,11 @@ class ProcedureStep(models.Model):
     step_number = models.PositiveIntegerField()
 
     description = models.TextField()
+    document = models.ManyToManyField(
+        Document,
+        related_name="procedure_steps",
+        blank=True
+        )
 
     def __str__(self):
         return (

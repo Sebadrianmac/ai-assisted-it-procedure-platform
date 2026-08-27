@@ -40,6 +40,11 @@ ROLE_PERMISSIONS = {
         "tasks.view_procedureexecution",
         "tasks.change_procedureexecution",
         "tasks.delete_procedureexecution",
+
+        "procedures.add_document",
+        "procedures.view_document",
+        "procedures.change_document",
+        "procedures.delete_document",
     ],
 
     "IT Manager": [
@@ -65,6 +70,11 @@ ROLE_PERMISSIONS = {
         "tasks.add_procedureexecution",
         "tasks.view_procedureexecution",
         "tasks.change_procedureexecution",
+
+        "procedures.add_document",
+        "procedures.view_document",
+        "procedures.change_document",
+        "procedures.delete_document",
     ],
 
     "Engineer": [
@@ -75,7 +85,10 @@ ROLE_PERMISSIONS = {
 
         "tasks.view_task",
         "tasks.change_task",
+        
         "tasks.view_procedureexecution",
+
+        "procedures.view_document",
     ],
 
     "Sales Representative": [
