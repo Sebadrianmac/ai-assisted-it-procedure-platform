@@ -159,7 +159,6 @@ class ProcedureVersion(models.Model):
     review_comment = models.TextField(
         blank=True,
     )
-    #Version time
     created_at = models.DateTimeField(
         auto_now_add=True,
     )

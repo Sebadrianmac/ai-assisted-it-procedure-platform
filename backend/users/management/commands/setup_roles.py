@@ -29,6 +29,17 @@ ROLE_PERMISSIONS = {
         "procedures.view_procedurestep",
         "procedures.change_procedurestep",
         "procedures.delete_procedurestep",
+
+        "tasks.add_task",
+        "tasks.view_task",
+        "tasks.change_task",
+        "tasks.delete_task",
+        "tasks.assign_task",
+
+        "tasks.add_procedureexecution",
+        "tasks.view_procedureexecution",
+        "tasks.change_procedureexecution",
+        "tasks.delete_procedureexecution",
     ],
 
     "IT Manager": [
@@ -45,6 +56,15 @@ ROLE_PERMISSIONS = {
         "procedures.add_procedurestep",
         "procedures.view_procedurestep",
         "procedures.change_procedurestep",
+
+        "tasks.add_task",
+        "tasks.view_task",
+        "tasks.change_task",
+        "tasks.assign_task",
+
+        "tasks.add_procedureexecution",
+        "tasks.view_procedureexecution",
+        "tasks.change_procedureexecution",
     ],
 
     "Engineer": [
@@ -52,24 +72,42 @@ ROLE_PERMISSIONS = {
         "procedures.view_procedureversion",
         "procedures.view_procedurestep",
         "procedures.change_procedurestep",
+
+        "tasks.view_task",
+        "tasks.change_task",
+        "tasks.view_procedureexecution",
     ],
 
     "Sales Representative": [
         "procedures.add_procedure",
         "procedures.view_procedure",
         "procedures.generate_procedure_with_ai",
+
+        "tasks.add_task",
+        "tasks.view_task",
+        "tasks.change_task",
+
+        "tasks.add_procedureexecution",
+        "tasks.view_procedureexecution",
     ],
 
     "Auditor": [
         "procedures.view_procedure",
         "procedures.view_procedureversion",
         "procedures.view_procedurestep",
+
+        "tasks.view_task",
+        "tasks.view_procedureexecution",
     ],
 
     "Customer": [
         "procedures.view_procedure",
         "procedures.view_procedureversion",
         "procedures.view_procedurestep",
+
+        "tasks.view_task",
+        "tasks.change_task",
+        "tasks.view_procedureexecution",
     ],
 }
 
