@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../api/api";
@@ -7,16 +7,62 @@ import ProcedureStepsForm from "./ProcedureStepsForm";
 
 import "../../styles/ProcedureCreate.css";
 
-
 const ProcedureCreate = () => {
-  const [formStep, setFormStep] =useState(1);
-  const [title, setTitle] =useState("");
-  const [description, setDescription] =useState("");
-  const [steps, setSteps] =useState([]);
-  const [error, setError] =useState("");
-  const [isCreating, setIsCreating] =useState(false);
-  
+  const [formStep, setFormStep] = useState(1);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [steps, setSteps] = useState([]);
+  const [error, setError] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [documentsError, setDocumentsError] = useState("");
+
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadDocuments = async () => {
+      try {
+        setIsLoadingDocuments(true);
+        setDocumentsError("");
+
+        const response = await api.get("/api/procedures/documents/", {
+          signal: controller.signal,
+        });
+
+        setDocuments(response.data);
+      } catch (error) {
+        if (error.code === "ERR_CANCELED") {
+          return;
+        }
+
+        const status = error.response?.status;
+
+        if (status === 401) {
+          setDocumentsError("Your session has expired.");
+        } else if (status === 403) {
+          setDocumentsError(
+            "You do not have permission to view documents."
+          );
+        } else {
+          setDocumentsError("Failed to load documents.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingDocuments(false);
+        }
+      }
+    };
+
+    loadDocuments();
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
+
   const handleCreate = async () => {
     const procedureData = {
       title: title.trim(),
@@ -28,55 +74,35 @@ const ProcedureCreate = () => {
       setIsCreating(true);
       setError("");
 
-      const response = await api.post(
-        "/api/procedures/",
-        procedureData
-      );
+      const response = await api.post("/api/procedures/", procedureData);
 
-      console.log(
-        "Created procedure:",
-        response.data
-      );
+      console.log("Created procedure:", response.data);
 
       navigate("/procedures");
     } catch (error) {
-      console.error(
-        "Procedure creation error:",
-        error
-      );
+      console.error("Procedure creation error:", error);
 
-      const status =
-        error.response?.status;
-
-      const backendData =
-        error.response?.data;
+      const status = error.response?.status;
+      const backendData = error.response?.data;
 
       if (status === 401) {
-        setError(
-          "Your session has expired."
-        );
+        setError("Your session has expired.");
       } else if (status === 403) {
-        setError(
-          "You do not have permission "
-          + "to create procedures."
-        );
+        setError("You do not have permission to create procedures.");
       } else if (status === 400) {
         setError(
           backendData?.title ||
-          backendData?.description ||
-          backendData?.steps ||
-          "Invalid procedure data."
+            backendData?.description ||
+            backendData?.steps ||
+            "Invalid procedure data."
         );
       } else {
-        setError(
-          "Failed to create procedure."
-        );
+        setError("Failed to create procedure.");
       }
     } finally {
       setIsCreating(false);
     }
   };
-
 
   return (
     <main className="procedure-create">
@@ -86,9 +112,7 @@ const ProcedureCreate = () => {
           description={description}
           setTitle={setTitle}
           setDescription={setDescription}
-          onContinue={() =>
-            setFormStep(2)
-          }
+          onContinue={() => setFormStep(2)}
         />
       )}
 
@@ -99,23 +123,19 @@ const ProcedureCreate = () => {
             description={description}
             steps={steps}
             setSteps={setSteps}
-            onBack={() =>
-              setFormStep(1)
-            }
+            documents={documents}
+            isLoadingDocuments={isLoadingDocuments}
+            documentsError={documentsError}
+            onBack={() => setFormStep(1)}
             onCreate={handleCreate}
             isCreating={isCreating}
           />
 
-          {error && (
-            <p className="form-error">
-              {error}
-            </p>
-          )}
+          {error && <p className="form-error">{String(error)}</p>}
         </>
       )}
     </main>
   );
 };
-
 
 export default ProcedureCreate;

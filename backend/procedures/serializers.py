@@ -20,16 +20,12 @@ def serialize_step(step):
         "description": step.description,
         "documents": [
             serialize_document(document)
-            for document
-            in step.documents.all()
+            for document in step.documents.all()
         ],
     }
 
 
-def serialize_version(
-    version,
-    include_steps=False,
-):
+def serialize_version(version, include_steps=False):
     if version is None:
         return None
 
@@ -38,21 +34,15 @@ def serialize_version(
         "title": version.title,
         "description": version.description,
         "status": version.status,
-        "status_label": (
-            version.get_status_display()
-        ),
+        "status_label": version.get_status_display(),
         "change_type": version.change_type,
         "version_major": version.version_major,
         "version_minor": version.version_minor,
         "version_number": version.version_number,
         "is_current": version.is_current,
-        "created_by": serialize_user(
-            version.created_by
-        ),
+        "created_by": serialize_user(version.created_by),
         "submitted_at": version.submitted_at,
-        "reviewed_by": serialize_user(
-            version.reviewed_by
-        ),
+        "reviewed_by": serialize_user(version.reviewed_by),
         "reviewed_at": version.reviewed_at,
         "review_comment": version.review_comment,
         "created_at": version.created_at,
@@ -70,11 +60,7 @@ def serialize_version(
 
 def get_current_version(procedure):
     return next(
-        (
-            version
-            for version in procedure.versions.all()
-            if version.is_current
-        ),
+        (version for version in procedure.versions.all() if version.is_current),
         None,
     )
 
@@ -97,16 +83,12 @@ def get_active_version(procedure):
 
 
 def get_display_version(procedure):
-    current_version = get_current_version(
-        procedure
-    )
+    current_version = get_current_version(procedure)
 
     if current_version:
         return current_version
 
-    active_version = get_active_version(
-        procedure
-    )
+    active_version = get_active_version(procedure)
 
     if active_version:
         return active_version
@@ -117,159 +99,70 @@ def get_display_version(procedure):
 
 
 def serialize_procedure_list_item(procedure):
-    display_version = get_display_version(
-        procedure
-    )
-
-    active_version = get_active_version(
-        procedure
-    )
-
-    current_version = get_current_version(
-        procedure
-    )
+    display_version = get_display_version(procedure)
+    active_version = get_active_version(procedure)
+    current_version = get_current_version(procedure)
 
     return {
         "id": procedure.id,
-        "title": (
-            display_version.title
-            if display_version
-            else ""
-        ),
-        "description": (
-            display_version.description
-            if display_version
-            else ""
-        ),
-        "status": (
-            display_version.status
-            if display_version
-            else None
-        ),
+        "title": display_version.title if display_version else "",
+        "description": display_version.description if display_version else "",
+        "status": display_version.status if display_version else None,
         "status_label": (
-            display_version.get_status_display()
-            if display_version
-            else None
+            display_version.get_status_display() if display_version else None
         ),
-        "version_number": (
-            display_version.version_number
-            if display_version
-            else None
-        ),
-        "created_by": serialize_user(
-            procedure.created_by
-        ),
+        "version_number": display_version.version_number if display_version else None,
+        "created_by": serialize_user(procedure.created_by),
         "created_at": procedure.created_at,
         "updated_at": procedure.updated_at,
-        "current_version": serialize_version(
-            current_version
-        ),
-        "active_version": serialize_version(
-            active_version
-        ),
+        "current_version": serialize_version(current_version),
+        "active_version": serialize_version(active_version),
     }
 
 
 def serialize_procedure_details(procedure):
-    current_version = get_current_version(
-        procedure
-    )
-
-    active_version = get_active_version(
-        procedure
-    )
-
-    display_version = (
-        active_version
-        or current_version
-    )
+    current_version = get_current_version(procedure)
+    active_version = get_active_version(procedure)
+    display_version = active_version or current_version
 
     return {
         "id": procedure.id,
-        "title": (
-            display_version.title
-            if display_version
-            else ""
-        ),
-        "description": (
-            display_version.description
-            if display_version
-            else ""
-        ),
-        "status": (
-            display_version.status
-            if display_version
-            else None
-        ),
+        "title": display_version.title if display_version else "",
+        "description": display_version.description if display_version else "",
+        "status": display_version.status if display_version else None,
         "status_label": (
-            display_version.get_status_display()
-            if display_version
-            else None
+            display_version.get_status_display() if display_version else None
         ),
-        "created_by": serialize_user(
-            procedure.created_by
-        ),
+        "created_by": serialize_user(procedure.created_by),
         "created_at": procedure.created_at,
         "updated_at": procedure.updated_at,
-        "current_version": serialize_version(
-            current_version,
-            include_steps=True,
-        ),
-        "active_version": serialize_version(
-            active_version,
-            include_steps=True,
-        ),
+        "current_version": serialize_version(current_version, include_steps=True),
+        "active_version": serialize_version(active_version, include_steps=True),
         "versions": [
-            serialize_version(
-                version,
-                include_steps=True,
-            )
+            serialize_version(version, include_steps=True)
             for version in procedure.versions.all()
         ],
     }
-def serialize_document(
-    document,
-    request,
-):
+
+
+def serialize_document(document, request=None):
+    file_url = None
+
+    if document.file:
+        if request is not None:
+            file_url = request.build_absolute_uri(document.file.url)
+        else:
+            file_url = document.file.url
+
     return {
         "id": document.id,
         "title": document.title,
-        "document_type": (
-            document.document_type
-        ),
-        "document_type_label": (
-            document
-            .get_document_type_display()
-        ),
-        "description": (
-            document.description
-        ),
-        "file_url": (
-            request.build_absolute_uri(
-                document.file.url
-            )
-            if document.file
-            else None
-        ),
-        "external_url": (
-            document.external_url
-        ),
-        "uploaded_by": {
-            "id": document.uploaded_by.id,
-            "username": (
-                document.uploaded_by.username
-            ),
-            "first_name": (
-                document.uploaded_by.first_name
-            ),
-            "last_name": (
-                document.uploaded_by.last_name
-            ),
-        },
-        "created_at": (
-            document.created_at
-        ),
-        "updated_at": (
-            document.updated_at
-        ),
+        "document_type": document.document_type,
+        "document_type_label": document.get_document_type_display(),
+        "description": document.description,
+        "file_url": file_url,
+        "external_url": document.external_url,
+        "uploaded_by": serialize_user(document.uploaded_by),
+        "created_at": document.created_at,
+        "updated_at": document.updated_at,
     }
