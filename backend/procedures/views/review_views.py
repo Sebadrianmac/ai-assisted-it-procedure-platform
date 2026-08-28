@@ -99,7 +99,7 @@ def procedure_review_detail(request, version_id):
             "created_by",
         )
         .prefetch_related(
-            "steps",
+            "steps__documents__uploaded_by",
         ),
         id=version_id,
         status=StatusChoices.CREATED,
