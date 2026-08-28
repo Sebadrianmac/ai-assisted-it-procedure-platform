@@ -275,3 +275,118 @@ def validate_document_content(request_data, request_files):
     }
 
     return validated_data, None
+def validate_document_update(
+    request_data,
+    request_files,
+):
+    validated_data = {}
+
+    if "title" in request_data:
+        title = request_data.get("title")
+
+        if not isinstance(title, str):
+            return None, Response(
+                {
+                    "title": (
+                        "Title must be a string."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        title = title.strip()
+
+        if not title:
+            return None, Response(
+                {
+                    "title": (
+                        "Title cannot be empty."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        validated_data["title"] = title
+
+    if "document_type" in request_data:
+        document_type = request_data.get(
+            "document_type"
+        )
+
+        if (
+            document_type
+            not in Document.DocumentType.values
+        ):
+            return None, Response(
+                {
+                    "document_type": (
+                        "Invalid document type."
+                    ),
+                    "allowed_values": (
+                        Document.DocumentType.values
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        validated_data["document_type"] = (
+            document_type
+        )
+
+    if "description" in request_data:
+        description = request_data.get(
+            "description"
+        )
+
+        if not isinstance(description, str):
+            return None, Response(
+                {
+                    "description": (
+                        "Description must be "
+                        "a string."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        validated_data["description"] = (
+            description.strip()
+        )
+
+    if "external_url" in request_data:
+        external_url = request_data.get(
+            "external_url"
+        )
+
+        if not isinstance(external_url, str):
+            return None, Response(
+                {
+                    "external_url": (
+                        "External URL must be "
+                        "a string."
+                    ),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        validated_data["external_url"] = (
+            external_url.strip()
+        )
+
+    if "file" in request_files:
+        validated_data["file"] = (
+            request_files.get("file")
+        )
+
+    if not validated_data:
+        return None, Response(
+            {
+                "detail": (
+                    "No document fields were "
+                    "provided."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return validated_data, None

@@ -10,7 +10,9 @@ from .review_views import (
 )
 from .document_views import(
     document_list,
-    document_delete,
+    document_detail,
+    delete_document,
+    update_document,
 )
 __all__ = [
     "procedure_details",
@@ -20,5 +22,7 @@ __all__ = [
     "status_list",
     "procedure_revision_create"
     "document_list",
-    "document_delete",
+    "document_detail",
+    "delete_document",
+    "update_document",
 ]

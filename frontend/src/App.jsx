@@ -18,6 +18,7 @@ import UserDetailsPage from "./users/UserDetailsPage";
 import UserCreate from "./users/UserCreate";
 import UserEditPage from "./users/UserEditPage";
 import RolePage from "./pages/RolePage";
+import DocumentsPage from "./pages/DocumentsPage";
 
 
 
@@ -190,7 +191,15 @@ function App() {
             <ProfilePage user={user} />
           }
         />
-
+        <Route
+          path="/documents"
+          element={
+          <DocumentsPage 
+            permissions={
+              user?.permissions || []
+            }  
+          />}
+        />
         <Route
           path="/tasks"
           element={<p>Tasks page</p>}

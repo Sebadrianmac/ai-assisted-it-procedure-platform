@@ -227,7 +227,10 @@ def serialize_procedure_details(procedure):
             for version in procedure.versions.all()
         ],
     }
-def serialize_document(document):
+def serialize_document(
+    document,
+    request,
+):
     return {
         "id": document.id,
         "title": document.title,
@@ -235,20 +238,38 @@ def serialize_document(document):
             document.document_type
         ),
         "document_type_label": (
-            document.get_document_type_display()
+            document
+            .get_document_type_display()
         ),
-        "description": document.description,
+        "description": (
+            document.description
+        ),
         "file_url": (
-            document.file.url
+            request.build_absolute_uri(
+                document.file.url
+            )
             if document.file
             else None
         ),
         "external_url": (
             document.external_url
         ),
-        "uploaded_by": serialize_user(
-            document.uploaded_by
+        "uploaded_by": {
+            "id": document.uploaded_by.id,
+            "username": (
+                document.uploaded_by.username
+            ),
+            "first_name": (
+                document.uploaded_by.first_name
+            ),
+            "last_name": (
+                document.uploaded_by.last_name
+            ),
+        },
+        "created_at": (
+            document.created_at
         ),
-        "created_at": document.created_at,
-        "updated_at": document.updated_at,
+        "updated_at": (
+            document.updated_at
+        ),
     }
