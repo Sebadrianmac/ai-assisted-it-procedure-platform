@@ -20,9 +20,7 @@ const Navbar = ({ user, onLogout }) => {
 
 
       <div className="navbar-user"> 
-        <span>
-          {user?.username || "User"}
-        </span>
+
         <Link to="/profile">
           <img
             src={profile}

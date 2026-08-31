@@ -1,3 +1,4 @@
+import "../../../styles/procedure/ProcedureFields.css";
 const ProcedureEditFields = ({
   title,
   description,

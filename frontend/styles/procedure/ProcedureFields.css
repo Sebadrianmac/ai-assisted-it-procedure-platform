@@ -1,0 +1,46 @@
+.edit-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.edit-form-group > label {
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.edit-form-group input,
+.edit-form-group textarea,
+.edit-form-group select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 13px;
+  color: #101828;
+  background-color: #ffffff;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  outline: none;
+  font: inherit;
+}
+
+.edit-form-group > textarea {
+  min-height: 120px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.edit-form-group input:focus,
+.edit-form-group textarea:focus,
+.edit-form-group select:focus {
+  border-color: #6172f3;
+  box-shadow: 0 0 0 4px rgb(97 114 243 / 12%);
+}
+
+.edit-form-group input:disabled,
+.edit-form-group textarea:disabled,
+.edit-form-group select:disabled {
+  color: #667085;
+  background-color: #f2f4f7;
+  cursor: not-allowed;
+}

@@ -92,8 +92,8 @@ const Sidebar = ({ permissions = [] }) => {
             </Can>
 
             <li>
-              <NavLink to="/configuration">
-                Configuration
+              <NavLink to="/documents">
+                Documents
               </NavLink>
             </li>
 
@@ -116,10 +116,15 @@ const Sidebar = ({ permissions = [] }) => {
             AI Create
           </NavLink>
         </Can>
-
+        <Can
+          permission={
+            "tasks.view_procedureexecution"
+          }
+        >
         <NavLink to="/tasks">
           Tasks
         </NavLink>
+        </Can>
       </nav>
     </aside>
   );

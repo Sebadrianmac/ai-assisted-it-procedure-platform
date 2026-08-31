@@ -1,5 +1,6 @@
-import "../../../styles/SearchInput.css";
+import { Search } from "lucide-react";
 
+import "../../../styles/SearchInput.css";
 
 const SearchInput = ({
   searchQuery,
@@ -12,6 +13,11 @@ const SearchInput = ({
 
   return (
     <div className="search-input">
+      <Search
+        className="search-input__icon"
+        size={20}
+      />
+
       <input
         className="search-input__field"
         type="search"
@@ -19,9 +25,7 @@ const SearchInput = ({
         placeholder={placeholder}
         aria-label={placeholder}
         onChange={(event) =>
-          setSearchQuery(
-            event.target.value
-          )
+          setSearchQuery(event.target.value)
         }
       />
 
@@ -38,6 +42,5 @@ const SearchInput = ({
     </div>
   );
 };
-
 
 export default SearchInput;

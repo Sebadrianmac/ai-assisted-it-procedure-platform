@@ -1,3 +1,4 @@
+import "../../../styles/procedure/ProcedureVersionInformation.css";
 const ProcedureVersionInformation = ({
   procedure,
   currentVersion,

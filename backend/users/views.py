@@ -134,7 +134,7 @@ def users_list(request):
         return Response(data)
 
     if request.method == "POST":
-        return  (request)
+        return  create_user(request)
 
 def create_user(request):
     username = request.data.get("username", "").strip()

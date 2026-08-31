@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .permissions import TasksPermissions, CanAssignTask, CanChangeTaskStatus
 from django.utils import timezone
+from django.db.models import Prefetch
 from django.shortcuts import (
     get_object_or_404,
 )
@@ -21,7 +22,17 @@ from .validators import validate_task_content, validate_task_assignment
 def tasks_list(request):
     if request.method == "GET":
         executions = (ProcedureExecution.objects
-                     .prefetch_related("tasks")
+                     .prefetch_related(Prefetch(
+                          "tasks",
+                            queryset=(
+                                 Task.objects.select_related(
+                                      "assigned_to",
+                                      "assigned_role",
+                                      "procedure_step"
+                                 )
+                                 .prefetch_related("procedure_step__documents__uploaded_by")
+                            )
+                          ))
                      .select_related(
                         "procedure_version",
                         "started_by",
@@ -65,6 +76,19 @@ def tasks_list(request):
                     "step_id": task.procedure_step_id,
                     "description": task.description,
                     "status": task.status,
+                    "reference_documents":[
+                         {
+                            "id": document.id,
+                            "title": document.title,
+                            "document_type": document.document_type,
+                            "document_type_label": document.get_document_type.display(),
+                            "description": document.description,
+                            "file_url": document.file.url if document.file else None,
+                            "external_url": document.external_url
+
+                         }
+                         for document in task.procedure_step.documents.all()
+                    ],
                     "assigned_to": (
                         {
                             "id": task.assigned_to.id,
