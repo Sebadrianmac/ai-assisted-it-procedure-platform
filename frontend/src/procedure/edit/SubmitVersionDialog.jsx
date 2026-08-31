@@ -1,3 +1,4 @@
+import "../../../styles/procedure/SubmitVersionDialog.css";
 const SubmitVersionDialog = ({
   isOpen,
   changeType,

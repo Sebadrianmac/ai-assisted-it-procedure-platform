@@ -1,0 +1,46 @@
+.version-information {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: #f9fafb;
+  border: 1px solid #e4e7ec;
+  border-radius: 12px;
+}
+
+.version-information h2 {
+  margin: 0 0 8px;
+  color: #101828;
+  font-size: 18px;
+}
+
+.version-info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 0;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.version-info-row:last-child {
+  border-bottom: 0;
+}
+
+.version-info-row span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.version-info-row strong {
+  max-width: 145px;
+  color: #344054;
+  font-size: 13px;
+  text-align: right;
+}
+
+@media (max-width: 900px) {
+  .version-information {
+    position: static;
+  }
+}

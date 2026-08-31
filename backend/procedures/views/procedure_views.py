@@ -111,34 +111,110 @@ def create_procedure(request):
     if error_response:
         return error_response
 
+    action = request.data.get(
+        "action",
+        "save_draft",
+    )
+
+    if action not in [
+        "save_draft",
+        "submit_for_approval",
+    ]:
+        return Response(
+            {
+                "action": (
+                    "Action must be save_draft "
+                    "or submit_for_approval."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if (
+        action == "submit_for_approval"
+        and not validated_data["steps"]
+    ):
+        return Response(
+            {
+                "steps": (
+                    "At least one step is "
+                    "required before submitting."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if action == "submit_for_approval":
+        steps_without_documents = [
+            step_data["step_number"]
+            for step_data
+            in validated_data["steps"]
+            if not step_data["documents"]
+        ]
+
+        if steps_without_documents:
+            return Response(
+                {
+                    "steps": (
+                        "Every procedure step "
+                        "must have at least one "
+                        "document."
+                    ),
+                    "steps_without_documents": (
+                        steps_without_documents
+                    ),
+                },
+                status=(
+                    status.HTTP_400_BAD_REQUEST
+                ),
+            )
+
+    if action == "submit_for_approval":
+        version_status = (
+            StatusChoices.CREATED
+        )
+        version_major = 1
+        version_minor = 0
+        submitted_at = timezone.now()
+    else:
+        version_status = (
+            StatusChoices.IN_PROGRESS
+        )
+        version_major = None
+        version_minor = None
+        submitted_at = None
+
     procedure = Procedure.objects.create(
         created_by=request.user,
     )
 
-    draft = ProcedureVersion.objects.create(
+    version = ProcedureVersion.objects.create(
         procedure=procedure,
         title=validated_data["title"],
         description=(
             validated_data["description"]
         ),
-        status=StatusChoices.IN_PROGRESS,
+        status=version_status,
+        version_major=version_major,
+        version_minor=version_minor,
+        change_type=None,
+        submitted_at=submitted_at,
         created_by=request.user,
         is_current=False,
     )
 
     replace_version_steps(
-        draft,
+        version,
         validated_data["steps"],
     )
 
     return Response(
         serialize_procedure_details(
-            load_procedure(procedure.id)
+            load_procedure(procedure.id),
+            request,
         ),
         status=status.HTTP_201_CREATED,
     )
-
-
 @api_view([
     "GET",
     "PATCH",
@@ -159,7 +235,7 @@ def procedure_details(
     if request.method == "GET":
         return Response(
             serialize_procedure_details(
-                procedure
+                procedure, request
             ),
             status=status.HTTP_200_OK,
         )
@@ -415,7 +491,8 @@ def update_procedure(
 
     return Response(
         serialize_procedure_details(
-            load_procedure(procedure.id)
+            load_procedure(procedure.id),
+            request
         ),
         status=status.HTTP_200_OK,
     )
@@ -614,6 +691,6 @@ def procedure_revision_create(
     procedure.save(update_fields=["updated_at"])
 
     return Response(
-        serialize_procedure_details(load_procedure(procedure.id)),
+        serialize_procedure_details(load_procedure(procedure.id), request),
         status=status.HTTP_201_CREATED,
     )

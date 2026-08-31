@@ -13,17 +13,21 @@ import ProcedureEditFields from "../procedure/edit/ProcedureEditFields";
 import ProcedureStepsEditor from "../procedure/edit/ProcedureStepsEditor";
 import ProcedureVersionInformation from "../procedure/edit/ProcedureVersionInformation";
 import SubmitVersionDialog from "../procedure/edit/SubmitVersionDialog";
-import "../../styles/ProcedureEdit.css";
-
+import "../../styles/procedure/ProcedureEditorPage.css";
 const EditProcedurePage = ({ permissions = [] }) => {
   const navigate = useNavigate();
   const { procedureId } = useParams();
   const [searchParams] = useSearchParams();
-  const isNewRevision = searchParams.get("mode") === "new-revision";
+  const isCreateMode = procedureId === undefined;
+  const isNewRevision =
+    !isCreateMode && searchParams.get("mode") === "new-revision";
   const [procedure, setProcedure] = useState(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState([]);
+  const [documents, setDocuments] = useState([]);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+  const [documentsError, setDocumentsError] = useState("");
   const [status, setStatus] = useState("");
   const [statusLabel, setStatusLabel] = useState("");
   const [currentVersion, setCurrentVersion] = useState(null);
@@ -35,12 +39,30 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const canEdit = permissions.includes("procedures.change_procedure");
+  const canEdit = isCreateMode
+    ? permissions.includes("procedures.add_procedure")
+    : permissions.includes("procedures.change_procedure");
   const isWaitingForApproval = status === "created";
   const isFormDisabled = !canEdit || isSaving || isWaitingForApproval;
 
   useEffect(() => {
     const controller = new AbortController();
+
+    if (isCreateMode) {
+      setProcedure(null);
+      setTitle("");
+      setDescription("");
+      setSteps([]);
+      setStatus("in_progress");
+      setStatusLabel("Draft");
+      setCurrentVersion(null);
+      setActiveVersion(null);
+      setIsFirstVersion(true);
+      setIsLoading(false);
+      setError("");
+
+      return () => controller.abort();
+    }
 
     const loadProcedure = async () => {
       try {
@@ -81,6 +103,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
             id: step.id,
             step_number: step.step_number,
             description: step.description,
+            document_ids: (step.documents ?? []).map((document) => document.id),
           })) ?? [],
         );
 
@@ -115,7 +138,46 @@ const EditProcedurePage = ({ permissions = [] }) => {
     return () => {
       controller.abort();
     };
-  }, [procedureId, isNewRevision]);
+  }, [procedureId, isNewRevision, isCreateMode]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadDocuments = async () => {
+      try {
+        setIsLoadingDocuments(true);
+        setDocumentsError("");
+
+        const response = await api.get("/api/procedures/documents/", {
+          signal: controller.signal,
+        });
+
+        setDocuments(response.data);
+      } catch (error) {
+        if (error.code === "ERR_CANCELED") {
+          return;
+        }
+
+        const responseStatus = error.response?.status;
+
+        if (responseStatus === 401) {
+          setDocumentsError("You need to log in.");
+        } else if (responseStatus === 403) {
+          setDocumentsError("You do not have permission to view documents.");
+        } else {
+          setDocumentsError("Failed to load documents.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoadingDocuments(false);
+        }
+      }
+    };
+
+    loadDocuments();
+
+    return () => controller.abort();
+  }, []);
 
   const changeStepDescription = (stepIndex, newDescription) => {
     setSteps((currentSteps) =>
@@ -130,6 +192,19 @@ const EditProcedurePage = ({ permissions = [] }) => {
     );
   };
 
+  const changeStepDocuments = (stepIndex, selectedDocumentIds) => {
+    setSteps((currentSteps) =>
+      currentSteps.map((step, index) =>
+        index === stepIndex
+          ? {
+              ...step,
+              document_ids: [...selectedDocumentIds],
+            }
+          : step,
+      ),
+    );
+  };
+
   const addStep = () => {
     setSteps((currentSteps) => [
       ...currentSteps,
@@ -137,6 +212,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
         id: `new-${Date.now()}`,
         step_number: currentSteps.length + 1,
         description: "",
+        document_ids: [],
       },
     ]);
   };
@@ -153,8 +229,10 @@ const EditProcedurePage = ({ permissions = [] }) => {
   };
 
   const createPayloadSteps = () => {
-    return steps.map((step) => ({
+    return steps.map((step, index) => ({
+      step_number: index + 1,
       description: step.description.trim(),
+      document_ids: step.document_ids ?? [],
     }));
   };
 
@@ -178,23 +256,28 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
       let response;
 
-      if (shouldCreateRevision) {
+      if (isCreateMode) {
+        response = await api.post("/api/procedures/", payload);
+      } else if (shouldCreateRevision) {
         response = await api.post(
           `/api/procedures/${procedureId}/revisions/`,
           payload,
         );
       } else {
-        response = await api.patch(
-          `/api/procedures/${procedureId}/`,
-          payload,
-        );
+        response = await api.patch(`/api/procedures/${procedureId}/`, payload);
       }
 
       const updatedProcedure = response.data;
+
+      if (isCreateMode) {
+        navigate(`/procedures/edit/${updatedProcedure.id}`, {
+          replace: true,
+        });
+      }
       const updatedActiveVersion = updatedProcedure.active_version ?? null;
       const updatedCurrentVersion = updatedProcedure.current_version ?? null;
       const displayVersion = updatedActiveVersion ?? updatedCurrentVersion;
-      
+
       setProcedure(updatedProcedure);
 
       setActiveVersion(updatedActiveVersion);
@@ -210,16 +293,14 @@ const EditProcedurePage = ({ permissions = [] }) => {
           id: step.id,
           step_number: step.step_number,
           description: step.description,
+          document_ids: (step.documents ?? []).map((document) => document.id),
         })) ?? [],
       );
       if (shouldCreateRevision) {
-      navigate(
-        `/procedures/edit/${procedureId}`,
-        {
+        navigate(`/procedures/edit/${procedureId}`, {
           replace: true,
-        },
-      );
-    }
+        });
+      }
 
       if (action === "save_draft") {
         setSuccessMessage("Draft saved successfully.");
@@ -238,15 +319,22 @@ const EditProcedurePage = ({ permissions = [] }) => {
       } else if (responseStatus === 403) {
         setError("You do not have permission " + "to edit this procedure.");
       } else if (responseStatus === 400) {
-        setError(
-          responseData?.title ??
-            responseData?.description ??
-            responseData?.steps ??
-            responseData?.change_type ??
-            responseData?.action ??
-            responseData?.detail ??
-            "The submitted data is invalid.",
-        );
+        if (Array.isArray(responseData?.steps_without_documents)) {
+          setError(
+            "Attach at least one document to steps: " +
+              responseData.steps_without_documents.join(", "),
+          );
+        } else {
+          setError(
+            responseData?.title ??
+              responseData?.description ??
+              responseData?.steps ??
+              responseData?.change_type ??
+              responseData?.action ??
+              responseData?.detail ??
+              "The submitted data is invalid.",
+          );
+        }
       } else {
         setError("Failed to save procedure.");
       }
@@ -283,7 +371,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
     return <p>Loading procedure...</p>;
   }
 
-  if (!procedure) {
+  if (!procedure && !isCreateMode) {
     return (
       <section className="procedure-edit">
         <p className="edit-form-error">{error || "Procedure not found."}</p>
@@ -300,7 +388,13 @@ const EditProcedurePage = ({ permissions = [] }) => {
           <div>
             <p className="edit-form-label">Procedure editor</p>
 
-            <h1>{isNewRevision ? "Create new revision" : "Edit procedure"}</h1>
+            <h1>
+              {isCreateMode
+                ? "Create procedure"
+                : isNewRevision
+                  ? "Create new revision"
+                  : "Edit procedure"}
+            </h1>
           </div>
 
           <span className={`current-status ` + `status-${status}`}>
@@ -314,7 +408,9 @@ const EditProcedurePage = ({ permissions = [] }) => {
           </div>
         )}
 
-        <div className="edit-layout">
+        <div
+          className={`edit-layout ${isCreateMode ? "edit-layout-single" : ""}`}
+        >
           <div className="edit-main-content">
             <ProcedureEditFields
               title={title}
@@ -326,20 +422,26 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
             <ProcedureStepsEditor
               steps={steps}
+              documents={documents}
+              isLoadingDocuments={isLoadingDocuments}
+              documentsError={documentsError}
               disabled={isFormDisabled}
               onStepChange={changeStepDescription}
+              onStepDocumentsChange={changeStepDocuments}
               onStepAdd={addStep}
               onStepRemove={removeStep}
             />
           </div>
 
-          <ProcedureVersionInformation
-            procedure={procedure}
-            currentVersion={currentVersion}
-            activeVersion={activeVersion}
-            statusLabel={statusLabel}
-            isNewRevision={isNewRevision}
-          />
+          {!isCreateMode && (
+            <ProcedureVersionInformation
+              procedure={procedure}
+              currentVersion={currentVersion}
+              activeVersion={activeVersion}
+              statusLabel={statusLabel}
+              isNewRevision={isNewRevision}
+            />
+          )}
         </div>
 
         {error && <p className="edit-form-error">{error}</p>}
@@ -352,7 +454,11 @@ const EditProcedurePage = ({ permissions = [] }) => {
           <button
             type="button"
             className="edit-cancel-button"
-            onClick={() => navigate(`/procedures/${procedureId}`)}
+            onClick={() =>
+              navigate(
+                isCreateMode ? "/procedures" : `/procedures/${procedureId}`,
+              )
+            }
             disabled={isSaving}
           >
             Cancel
@@ -392,7 +498,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
         />
       )}
 
-      {procedure.active_version?.review_comment && (
+      {procedure?.active_version?.review_comment && (
         <ProcedureReviewComment version={procedure.active_version} />
       )}
     </section>

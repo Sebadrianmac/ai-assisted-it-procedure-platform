@@ -1,5 +1,5 @@
 import { ExternalLink, FileText, Link2 } from "lucide-react";
-
+import "../../styles/ProcedureVersionSteps.css";
 const ProcedureVersionSteps = ({ version }) => {
   const steps = version?.steps ?? [];
 
@@ -10,7 +10,7 @@ const ProcedureVersionSteps = ({ version }) => {
   const getDocumentUrl = (document) => {
     return document.file_url || document.external_url || null;
   };
-
+  
   return (
     <section className={"procedure-steps-card"}>
       <div className={"details-card-header"}>

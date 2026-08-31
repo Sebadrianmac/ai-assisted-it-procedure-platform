@@ -1,0 +1,187 @@
+.procedure-edit {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px;
+  box-sizing: border-box;
+}
+
+.procedure-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 32px;
+  background-color: #ffffff;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgb(16 24 40 / 6%);
+}
+
+.edit-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.edit-form-header h1 {
+  margin: 4px 0 0;
+  color: #101828;
+  font-size: 28px;
+}
+
+.edit-form-label {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.current-status {
+  padding: 7px 12px;
+  color: #344054;
+  background-color: #f2f4f7;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-created {
+  color: #6941c6;
+  background-color: #f4f3ff;
+}
+
+.status-in_progress {
+  color: #175cd3;
+  background-color: #eff8ff;
+}
+
+.status-completed {
+  color: #067647;
+  background-color: #ecfdf3;
+}
+
+.status-rejected {
+  color: #b42318;
+  background-color: #fef3f2;
+}
+
+.status-clarification_needed {
+  color: #b54708;
+  background-color: #fffaeb;
+}
+
+.edit-status-message {
+  padding: 13px 15px;
+  color: #6941c6;
+  background-color: #f4f3ff;
+  border: 1px solid #d9d6fe;
+  border-radius: 10px;
+}
+
+.edit-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(260px, 320px);
+  align-items: start;
+  gap: 26px;
+}
+
+.edit-layout-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.edit-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+.edit-form-error,
+.edit-form-success {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.edit-form-error {
+  color: #b42318;
+  background-color: #fef3f2;
+  border: 1px solid #fecdca;
+}
+
+.edit-form-success {
+  color: #067647;
+  background-color: #ecfdf3;
+  border: 1px solid #abefc6;
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid #eaecf0;
+}
+
+.edit-form-actions button {
+  padding: 10px 17px;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-cancel-button {
+  color: #344054;
+  background-color: #ffffff;
+  border: 1px solid #d0d5dd;
+}
+
+.edit-save-button {
+  color: #444ce7;
+  background-color: #ffffff;
+  border: 1px solid #6172f3;
+}
+
+.edit-submit-button {
+  color: #ffffff;
+  background-color: #6172f3;
+  border: 1px solid #6172f3;
+}
+
+.edit-form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (max-width: 900px) {
+  .edit-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .procedure-edit {
+    padding: 16px;
+  }
+
+  .procedure-edit-form {
+    padding: 22px 18px;
+  }
+
+  .edit-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .edit-form-actions button {
+    width: 100%;
+  }
+}

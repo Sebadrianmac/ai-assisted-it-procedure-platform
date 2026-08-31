@@ -1,0 +1,149 @@
+.procedure-steps-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.steps-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.steps-heading > label {
+  color: #344054;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.steps-heading span {
+  color: #667085;
+  font-size: 13px;
+}
+
+.edit-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.edit-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 14px;
+  background-color: #f9fafb;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
+}
+
+.edit-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: #ffffff;
+  background-color: #6172f3;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.edit-step-content {
+  min-width: 0;
+}
+
+.edit-step textarea {
+  width: 100%;
+  min-height: 62px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font: inherit;
+  resize: vertical;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.edit-step-documents {
+  margin-top: 14px;
+}
+
+.edit-step-documents-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.step-reference-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.step-reference-document {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  color: #344054;
+  text-decoration: none;
+  background-color: #ffffff;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+}
+
+.step-reference-document small {
+  padding: 4px 8px;
+  color: #175cd3;
+  background-color: #eff8ff;
+  border-radius: 999px;
+}
+
+.empty-step-documents,
+.empty-steps {
+  margin: 0 0 10px;
+  padding: 12px;
+  color: #667085;
+  text-align: center;
+  background-color: #ffffff;
+  border: 1px dashed #d0d5dd;
+  border-radius: 8px;
+}
+
+.manage-step-documents-button,
+.add-step-button {
+  padding: 9px 13px;
+  color: #444ce7;
+  background-color: #ffffff;
+  border: 1px solid #a4bcfd;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.remove-step-button {
+  padding: 8px 10px;
+  color: #b42318;
+  background-color: #ffffff;
+  border: 1px solid #fecdca;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .edit-step {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+
+  .remove-step-button {
+    grid-column: 2;
+  }
+}

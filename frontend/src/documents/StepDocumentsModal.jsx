@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { File, Link2, Search, X } from "lucide-react";
 
+import "../../styles/documents/StepDocumentsModal.css";
+
 const StepDocumentsModal = ({
   stepNumber,
   documents = [],

@@ -13,19 +13,19 @@ def serialize_user(user):
     }
 
 
-def serialize_step(step):
+def serialize_step(step, request=None):
     return {
         "id": step.id,
         "step_number": step.step_number,
         "description": step.description,
         "documents": [
-            serialize_document(document)
+            serialize_document(document, request)
             for document in step.documents.all()
         ],
     }
 
 
-def serialize_version(version, include_steps=False):
+def serialize_version(version, include_steps=False, request= None):
     if version is None:
         return None
 
@@ -51,7 +51,7 @@ def serialize_version(version, include_steps=False):
 
     if include_steps:
         version_data["steps"] = [
-            serialize_step(step)
+            serialize_step(step, request)
             for step in version.steps.all()
         ]
 
@@ -120,7 +120,7 @@ def serialize_procedure_list_item(procedure):
     }
 
 
-def serialize_procedure_details(procedure):
+def serialize_procedure_details(procedure, request):
     current_version = get_current_version(procedure)
     active_version = get_active_version(procedure)
     display_version = active_version or current_version
@@ -136,10 +136,10 @@ def serialize_procedure_details(procedure):
         "created_by": serialize_user(procedure.created_by),
         "created_at": procedure.created_at,
         "updated_at": procedure.updated_at,
-        "current_version": serialize_version(current_version, include_steps=True),
-        "active_version": serialize_version(active_version, include_steps=True),
+        "current_version": serialize_version(current_version, include_steps=True, request=request),
+        "active_version": serialize_version(active_version, include_steps=True, request=request),
         "versions": [
-            serialize_version(version, include_steps=True)
+            serialize_version(version, include_steps=True, request=request)
             for version in procedure.versions.all()
         ],
     }

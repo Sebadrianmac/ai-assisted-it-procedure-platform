@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import StepDocumentsModal from "../documents/StepDocumentsModal";
-import "../../styles/StepDocumentsModal.css";
 const ProcedureStepsForm = ({
   title,
   description,
@@ -194,7 +193,7 @@ const ProcedureStepsForm = ({
                       aria-label={`Remove ${document.title}`}
                       onClick={() => handleDocumentToggle(document.id)}
                     >
-                      ×
+                      
                     </button>
                   </div>
                 );
