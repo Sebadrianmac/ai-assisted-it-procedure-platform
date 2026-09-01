@@ -120,11 +120,13 @@ const Sidebar = ({ permissions = [] }) => {
           permission={
             "tasks.view_procedureexecution"
           }
+          permissions={permissions}
         >
         <NavLink to="/tasks">
           Tasks
         </NavLink>
         </Can>
+
       </nav>
     </aside>
   );

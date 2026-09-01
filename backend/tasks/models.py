@@ -42,11 +42,29 @@ class ProcedureExecution(models.Model):
         default=StatusChoices.CREATED,
     )
     started_at = models.DateTimeField(auto_now_add=True)
+    deadline = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Execution {self.id} - {self.procedure_version.title} v{self.procedure_version.version_number}"
 
+class Meta:
+    constraints = [
+        models.CheckConstraint(
+            condition=(
+                models.Q(deadline__isnull=True)
+                | models.Q(
+                    deadline__gt=models.F(
+                        "started_at"
+                    )
+                )
+            ),
+            name=(
+                "execution_deadline_"
+                "after_started_at"
+            ),
+        ),
+    ]        
 class Task(models.Model):
     class StatusChoices(models.TextChoices):
         CREATED = (

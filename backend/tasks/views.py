@@ -11,7 +11,11 @@ from django.db.models import Prefetch
 from django.shortcuts import (
     get_object_or_404,
 )
-from .validators import validate_task_content, validate_task_assignment
+from .validators import (
+    validate_task_content, 
+    validate_task_assignment, 
+    validate_execution_context
+    )
 
 @api_view(["GET", "POST"])
 @permission_classes([
@@ -70,6 +74,8 @@ def tasks_list(request):
                     execution.started_by.last_name
                 ),
             },
+            "deadline": execution.deadline,
+            "completed_at": execution.completed_at,
             "tasks": [
                 {
                     "task_id": task.id,
@@ -125,56 +131,85 @@ def tasks_list(request):
         )
 
     if request.method == "POST":
-        procedure_version_id = request.data.get("procedure_version_id")
-        if procedure_version_id is not None:     
-            procedure_version = get_object_or_404(
-                ProcedureVersion, 
-                id=procedure_version_id, 
-                is_current= True, 
-                status=StatusChoices.COMPLETED
+        validated_data, error_response = (
+             validate_execution_context(request.data)
+        )
+        if error_response:
+             return error_response
+
+        procedure_version = validated_data["procedure_version"]
+        context = validated_data["context"]
+        deadline = validated_data["deadline"]
+
+        steps = procedure_version.steps.all()
+        if steps.exists():
+            execution = ProcedureExecution.objects.create(
+                procedure_version=procedure_version,
+                started_by = request.user,
+                context = context,
+                deadline=deadline
                 )
-            steps = procedure_version.steps.all()
-            if steps.exists():
-                execution = ProcedureExecution.objects.create(
-                    procedure_version=procedure_version,
-                    started_by = request.user,
-                    context = request.data.get("context") or ""
-                    )
-                for step in steps:
-                    Task.objects.create(
-                        execution=execution,
-                        procedure_step = step,
+            for step in steps:
+                Task.objects.create(
+                    execution=execution,
+                    procedure_step = step,
                         description=step.description
-                    )
-                return Response({
-                    "execution_id": execution.id,
-                    "procedure_version_id": procedure_version_id,
-                    "context": execution.context,
-                    "execution_status": execution.status,
-                    "tasks_count": execution.tasks.count(),
-                    "tasks": [{
-                        "task_id": task.id,
-                        "step_id": task.procedure_step_id,
-                        "description": task.description,
-                        "status": task.status,
-                    }
-                    for task in execution.tasks.all()
-                    ]
-                },
-                status=status.HTTP_201_CREATED
                 )
-            else: 
-                return Response({
-                    "steps": "Approved procedure version has no steps."
+            return Response({
+                "execution_id": execution.id,
+                "procedure_version": {
+                    "id": (
+                        procedure_version.id
+                    ),
+                    "title": (
+                        procedure_version.title
+                    ),
+                    "version_number": (
+                        procedure_version
+                        .version_number
+                    ),
+                },                
+                "context": context,
+                "execution_status": execution.status,
+                "tasks_count": execution.tasks.count(),
+                "tasks": [{
+                    "task_id": task.id,
+                    "step_id": task.procedure_step_id,
+                    "description": task.description,
+                    "status": task.status,
+                }
+                
+                for task in execution.tasks.all()
+                ],
+                "started_by": {
+                    "id": request.user.id,
+                    "username": (
+                        request.user.username
+                    ),
+                    "first_name": (
+                        request.user.first_name
+                    ),
+                    "last_name": (
+                        request.user.last_name
+                    ),
                 },
-                status=status.HTTP_400_BAD_REQUEST
-                )
+                "started_at": (
+                    execution.started_at
+                ),
+                "deadline": execution.deadline,
+                "completed_at": (
+                    execution.completed_at
+                ),
+            },
+            status=status.HTTP_201_CREATED,
+        )
         else: 
             return Response({
-                "procedure_version_id": "Procedure version ID is required"
+                "steps": "Approved procedure version has no steps."
             },
             status=status.HTTP_400_BAD_REQUEST
             )
+    
 @api_view(["PUT"])
 @permission_classes([
     IsAuthenticated,

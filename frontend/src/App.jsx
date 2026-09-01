@@ -17,6 +17,7 @@ import ReviewItemDetail from "./procedure/ReviewItemDetail";
 import UserCreate from "./users/UserCreate";
 import UserDetailsPage from "./users/UserDetailsPage";
 import UserEditPage from "./users/UserEditPage";
+import TaskPage from "./pages/TaskPage";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -109,7 +110,9 @@ function App() {
         <Route path="/configuration" element={<p>Settings</p>} />
         <Route path="/audit" element={<p>Audit</p>} />
         <Route path="/profile" element={<ProfilePage user={user} />} />
-        <Route path="/tasks" element={<p>Tasks page</p>} />
+        <Route 
+          path="/tasks" 
+          element={<TaskPage permissions={permissions} user={user} />} />
         <Route path="/ai-create" element={<p>AI Create page</p>} />
       </Route>
 

@@ -5,7 +5,13 @@ from .models import Task
 from users.models import User
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from procedures.models import ProcedureVersion, StatusChoices
 
+from rest_framework import serializers
+from rest_framework.exceptions import (
+    ValidationError,
+)
 
 
 def validate_task_content(
@@ -235,3 +241,108 @@ def validate_task_assignment(request_data, task):
                 ),
             )
     return validated_data, None
+def validate_execution_context(request_data):
+    procedure_version_id = request_data.get("procedure_version_id")
+
+    if procedure_version_id is None:
+        return None, Response({
+            "procedure_version_id": "Must contains procedure version id"
+        },
+        status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not isinstance(procedure_version_id, int):
+        return None, Response({
+            "procedure_version_id":  "Procedure version ID must be an integer."
+        },
+        status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    procedure_version = (
+        get_object_or_404(
+            ProcedureVersion.objects
+            .prefetch_related(
+                "steps__documents",
+            ),
+            id=procedure_version_id,
+        )
+    )
+    if (
+        procedure_version.status 
+        != StatusChoices.COMPLETED
+        or not procedure_version.is_current
+        ):
+        return None, Response({
+                "procedure_version_id": (
+                    "Only the current approved "
+                    "procedure version can "
+                    "be executed."
+                ),      
+        },
+        status=status.HTTP_406_NOT_ACCEPTABLE
+        ) 
+
+    raw_deadline = request_data.get(
+        "deadline"
+    )
+
+    deadline = None
+
+    if raw_deadline is not None:
+        deadline_field = (
+            serializers.DateTimeField(
+                allow_null=True,
+            )
+        )
+
+        try:
+            deadline = (
+                deadline_field
+                .run_validation(
+                    raw_deadline
+                )
+            )
+        except ValidationError:
+            return None, Response(
+                {
+                    "deadline": (
+                        "Deadline must be "
+                        "a valid date and time."
+                    ),
+                },
+                status=(
+                    status
+                    .HTTP_400_BAD_REQUEST
+                ),
+            )
+
+        if deadline <= timezone.now():
+            return None, Response(
+                {
+                    "deadline": (
+                        "Deadline must be "
+                        "in the future."
+                    ),
+                },
+                status=(
+                    status
+                    .HTTP_400_BAD_REQUEST
+                ),
+            )
+    context = request_data.get("context", "")
+    if not isinstance(context, str):
+        return None, Response({
+               "context": (
+                    "Context must be "
+                    "a string."
+                ),        },
+        status=status.HTTP_400_BAD_REQUEST
+        )
+    context = context.strip()
+
+
+    return {
+        "procedure_version": procedure_version,
+        "context": context,
+        "deadline": deadline
+    },None
