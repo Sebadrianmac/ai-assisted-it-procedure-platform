@@ -89,7 +89,13 @@ def tasks_list(request):
                             "document_type": document.document_type,
                             "document_type_label": document.get_document_type_display(),
                             "description": document.description,
-                            "file_url": document.file.url if document.file else None,
+                            "file_url": (
+                                request.build_absolute_uri(
+                                    document.file.url
+                                )
+                                if document.file
+                                else None
+                            ),                            
                             "external_url": document.external_url
 
                          }
@@ -140,21 +146,68 @@ def tasks_list(request):
         procedure_version = validated_data["procedure_version"]
         context = validated_data["context"]
         deadline = validated_data["deadline"]
+        
+        assignments = request.data.get(
+            "assignments",
+            [],
+        )
 
+        assignments_by_step = {
+            int(item["procedure_step_id"]): item
+            for item in assignments
+        }
         steps = procedure_version.steps.all()
-        if steps.exists():
-            execution = ProcedureExecution.objects.create(
-                procedure_version=procedure_version,
-                started_by = request.user,
-                context = context,
-                deadline=deadline
+
+        if not steps.exists():
+            return Response(
+                {
+                    "steps": (
+                        "Approved procedure version "
+                        "has no steps."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        execution = ProcedureExecution.objects.create(
+            procedure_version=procedure_version,
+            started_by=request.user,
+            context=context,
+            deadline=deadline,
+        )
+
+        for step in steps:
+            assignment = assignments_by_step.get(
+                step.id,
+                {},
+            )
+
+            assigned_to_id = assignment.get(
+                "assigned_to_id"
+            )
+
+            assigned_role_id = assignment.get(
+                "assigned_role_id"
+            )
+
+            if assigned_to_id and assigned_role_id:
+                return Response(
+                    {
+                        "assignments": (
+                            f"Step {step.id} cannot be assigned "
+                            "to both a user and role."
+                        )
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
-            for step in steps:
-                Task.objects.create(
-                    execution=execution,
-                    procedure_step = step,
-                        description=step.description
-                )
+
+            Task.objects.create(
+                execution=execution,
+                procedure_step=step,
+                description=step.description,
+                assigned_to_id=assigned_to_id,
+                assigned_role_id=assigned_role_id,
+            )
             return Response({
                 "execution_id": execution.id,
                 "procedure_version": {
@@ -172,14 +225,37 @@ def tasks_list(request):
                 "context": context,
                 "execution_status": execution.status,
                 "tasks_count": execution.tasks.count(),
-                "tasks": [{
-                    "task_id": task.id,
-                    "step_id": task.procedure_step_id,
-                    "description": task.description,
-                    "status": task.status,
-                }
-                
-                for task in execution.tasks.all()
+                "tasks": [
+                    {
+                        "task_id": task.id,
+                        "step_id": task.procedure_step_id,
+                        "description": task.description,
+                        "status": task.status,
+
+                        "assigned_to": (
+                            {
+                                "id": task.assigned_to.id,
+                                "username": task.assigned_to.username,
+                                "first_name": task.assigned_to.first_name,
+                                "last_name": task.assigned_to.last_name,
+                            }
+                            if task.assigned_to
+                            else None
+                        ),
+
+                        "assigned_role": (
+                            {
+                                "id": task.assigned_role.id,
+                                "name": task.assigned_role.name,
+                            }
+                            if task.assigned_role
+                            else None
+                        ),
+                    }
+                    for task in execution.tasks.select_related(
+                        "assigned_to",
+                        "assigned_role",
+                    )
                 ],
                 "started_by": {
                     "id": request.user.id,

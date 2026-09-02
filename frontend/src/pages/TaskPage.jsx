@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import SearchInput from "./components/SearchInput";
 import api from "../api/api";
 import TaskItem from "../tasks/TaskItem";
@@ -7,6 +7,7 @@ import "../../styles/tasks/TaskPage.css";
 import { Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Can from "./components/Can";
+import ExecutionDetailsModal from "../tasks/ExecutionDetailsModal";
 
 const TaskPage = ({ permissions = [], user }) => {
   const statusColumns = [
@@ -30,27 +31,43 @@ const TaskPage = ({ permissions = [], user }) => {
   const [executions, setExecutions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("all");
-
+  const [selectedTaskItem, setSelectedTaskItem] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const navigation = useNavigate(); 
+  const navigation = useNavigate();
+
   const allTasks = executions.flatMap((execution) =>
     execution.tasks.map((task) => ({
       task: task,
       execution: execution,
     })),
   );
-  const myTasks = allTasks.filter((item) => {
-    const assignedDirectly = item.task.assigned_to?.id === user?.id;
+  const myTasks = allTasks.filter(({ task }) => {
+    const assignedDirectly = task.assigned_to?.id === user?.id;
 
-    const assignedByRole = user?.roles?.some(
-      (role) => role.id === item.task.assigned_role?.id,
-    );
+    const assignedByRole = user?.roles?.some((role) => {
+      if (!task.assigned_role) {
+        return false;
+      }
+
+      if (typeof role === "object") {
+        return role.id === task.assigned_role.id;
+      }
+
+      return role === task.assigned_role.name;
+    });
 
     return assignedDirectly || assignedByRole;
   });
-  const visibleTasks = viewMode === "mine" ? myTasks : allTasks;
-
+  const unassignedTasks = allTasks.filter(({ task }) => {
+    return !task.assigned_to && !task.assigned_role;
+  });
+  const visibleTasks =
+    viewMode === "mine"
+      ? myTasks
+      : viewMode === "unassigned"
+        ? unassignedTasks
+        : allTasks;
   useEffect(() => {
     const controller = new AbortController();
 
@@ -93,12 +110,13 @@ const TaskPage = ({ permissions = [], user }) => {
       controller.abort();
     };
   }, []);
+
   if (isLoading) {
-    return <p>Loading procedures...</p>;
+    return <p>Loading task...</p>;
   }
 
   if (error) {
-    return <p className="procedures-error">{error}</p>;
+    return <p className="task-error">{error}</p>;
   }
   return (
     <main>
@@ -122,7 +140,6 @@ const TaskPage = ({ permissions = [], user }) => {
           </button>
         </Can>
       </header>
-
       <div className="task-view-toggle">
         <button
           type="button"
@@ -138,6 +155,14 @@ const TaskPage = ({ permissions = [], user }) => {
           onClick={() => setViewMode("mine")}
         >
           My Tasks {myTasks.length}
+        </button>
+
+        <button
+          type="button"
+          className={viewMode === "unassigned" ? "active" : ""}
+          onClick={() => setViewMode("unassigned")}
+        >
+          Unassigned {unassignedTasks.length}
         </button>
       </div>
 
@@ -179,6 +204,12 @@ const TaskPage = ({ permissions = [], user }) => {
                       key={item.task.task_id}
                       task={item.task}
                       execution={item.execution}
+                      onClick={() => {
+                        setSelectedTaskItem({
+                          task: item.task,
+                          execution: item.execution,
+                        });
+                      }}
                     />
                   ))
                 )}
@@ -186,6 +217,16 @@ const TaskPage = ({ permissions = [], user }) => {
             </section>
           );
         })}
+      </div>
+      <div>
+        {selectedTaskItem && (
+          <ExecutionDetailsModal
+            permissions={permissions}
+            task={selectedTaskItem.task}
+            execution={selectedTaskItem.execution}
+            onClose={() => setSelectedTaskItem(null)}
+          />
+        )}
       </div>
     </main>
   );

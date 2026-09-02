@@ -144,22 +144,28 @@ const ExecutionCreate = () => {
       return;
     }
 
-    if (!allStepsAssigned) {
-      setError("Assign every procedure step to a role or user.");
-      return;
-    }
-
     const taskAssignments = procedureSteps.map((step) => {
       const assignment = assignments[step.id];
 
+      if (assignment?.type === "user" && assignment.assignedUserId) {
+        return {
+          procedure_step_id: step.id,
+          assigned_to_id: Number(assignment.assignedUserId),
+          assigned_role_id: null,
+        };
+      }
+
+      if (assignment?.type === "role" && assignment.assignedRoleId) {
+        return {
+          procedure_step_id: step.id,
+          assigned_to_id: null,
+          assigned_role_id: Number(assignment.assignedRoleId),
+        };
+      }
       return {
         procedure_step_id: step.id,
-
-        assigned_to_id:
-          assignment.type === "user" ? Number(assignment.assignedUserId) : null,
-
-        assigned_role_id:
-          assignment.type === "role" ? Number(assignment.assignedRoleId) : null,
+        assigned_to_id: null,
+        assigned_role_id: null,
       };
     });
 
@@ -320,8 +326,7 @@ const ExecutionCreate = () => {
               !selectedProcedureId ||
               isLoading ||
               isStepsLoading ||
-              isSubmitting ||
-              !allStepsAssigned
+              isSubmitting
             }
           >
             {isSubmitting ? "Starting..." : "Start execution"}

@@ -101,7 +101,6 @@ const ProcedureVersionContent = ({ procedure, version }) => {
             <dd>{formatDate(version.updated_at)}</dd>
           </div>
 
-
           {version.submitted_at && (
             <div>
               <dt>Submitted at</dt>
@@ -125,8 +124,6 @@ const ProcedureVersionContent = ({ procedure, version }) => {
               <dd>{formatDate(version.reviewed_at)}</dd>
             </div>
           )}
-
-         
         </dl>
       </section>
 

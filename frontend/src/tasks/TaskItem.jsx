@@ -1,5 +1,5 @@
 import "../../styles/tasks/TaskItem.css";
-const TaskItem = ({ task, execution }) => {
+const TaskItem = ({ task, execution, onClick }) => {
   const [contextTitle, contextTarget] = (execution.context ?? "").split(
     " for ",
   );
@@ -21,7 +21,7 @@ const TaskItem = ({ task, execution }) => {
     );
 
     const weekday = deadlineDate.toLocaleDateString("en-US", {
-      weekday: "long",
+      weekday: "short",
     });
 
     if (differenceInDays < 0) {
@@ -44,7 +44,17 @@ const TaskItem = ({ task, execution }) => {
   };
   const documentsCount = task.reference_documents?.length ?? 0;
   return (
-    <div className="task-card">
+    <div
+      className="task-card"
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          onClick();
+        }
+      }}
+    >
       {contextTarget && <p>{contextTarget}</p>}
       <h3>{task.description}</h3>
       {contextTitle && <p>{contextTitle}</p>}
