@@ -87,7 +87,7 @@ def tasks_list(request):
                             "id": document.id,
                             "title": document.title,
                             "document_type": document.document_type,
-                            "document_type_label": document.get_document_type.display(),
+                            "document_type_label": document.get_document_type_display(),
                             "description": document.description,
                             "file_url": document.file.url if document.file else None,
                             "external_url": document.external_url

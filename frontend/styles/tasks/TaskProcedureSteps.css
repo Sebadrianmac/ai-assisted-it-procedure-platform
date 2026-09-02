@@ -1,0 +1,160 @@
+.table-step-info {
+  position: relative;
+  z-index: 10;
+}
+
+.procedure-steps-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 22px 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.procedure-steps-header h2 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
+
+.procedure-steps-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.assigned-steps-count {
+  flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.steps-empty {
+  padding: 40px 24px;
+  color: #64748b;
+  text-align: center;
+}
+
+.steps-empty p {
+  margin: 0;
+}
+
+.step-assign {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.step-assign-item {
+  position: relative;
+
+  display: grid;
+  grid-template-columns:
+    48px
+    minmax(220px, 1fr)
+    230px
+    minmax(240px, 360px);
+  gap: 24px;
+  align-items: center;
+
+  min-height: 80px;
+  padding: 14px 16px;
+
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.step-assign-item:focus-within {
+  z-index: 20;
+}
+
+.step-assign-item:last-child {
+  border-bottom: none;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  color: #334155;
+  font-weight: 700;
+
+  background-color: #f8fafc;
+  border: 1px solid #dfe3ec;
+  border-radius: 7px;
+}
+
+.step-description {
+  margin: 0;
+  color: #172033;
+  line-height: 1.5;
+}
+
+.assignment-type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  overflow: hidden;
+  border: 1px solid #dfe3ec;
+  border-radius: 8px;
+}
+
+.assignment-type-toggle button {
+  min-height: 44px;
+  padding: 10px 20px;
+
+  color: #334155;
+  font: inherit;
+
+  background-color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+
+.assignment-type-toggle button + button {
+  border-left: 1px solid #dfe3ec;
+}
+
+.assignment-type-toggle button:hover {
+  background-color: #eff6ff;
+}
+
+.assignment-type-toggle button.active {
+  color: #ffffff;
+  background-color: #2563eb;
+}
+
+@media (max-width: 1050px) {
+  .step-assign-item {
+    grid-template-columns: 48px 1fr;
+  }
+
+  .assignment-type-toggle,
+  .assignment-select {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 650px) {
+  .procedure-steps-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .step-assign-item {
+    grid-template-columns: 1fr;
+  }
+
+  .step-number,
+  .assignment-type-toggle,
+  .assignment-select {
+    grid-column: 1;
+  }
+
+  .assignment-select {
+    min-width: 0;
+  }
+}

@@ -1,18 +1,55 @@
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import SearchInput from "./components/SearchInput";
 import api from "../api/api";
-import ExecutionItem from "../tasks/TaskItem";
+import TaskItem from "../tasks/TaskItem";
+import "../../styles/tasks/TaskBoard.css";
+import "../../styles/tasks/TaskPage.css";
+import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import Can from "./components/Can";
 
-const TaskPage = ({
-     permissions = [],
-     user 
-}) => {
+const TaskPage = ({ permissions = [], user }) => {
+  const statusColumns = [
+    {
+      value: "created",
+      label: "To do",
+    },
+    {
+      value: "in_progress",
+      label: "In progress",
+    },
+    {
+      value: "blocked",
+      label: "Blocked",
+    },
+    {
+      value: "completed",
+      label: "Completed",
+    },
+  ];
   const [executions, setExecutions] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("all");
 
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const navigation = useNavigate(); 
+  const allTasks = executions.flatMap((execution) =>
+    execution.tasks.map((task) => ({
+      task: task,
+      execution: execution,
+    })),
+  );
+  const myTasks = allTasks.filter((item) => {
+    const assignedDirectly = item.task.assigned_to?.id === user?.id;
+
+    const assignedByRole = user?.roles?.some(
+      (role) => role.id === item.task.assigned_role?.id,
+    );
+
+    return assignedDirectly || assignedByRole;
+  });
+  const visibleTasks = viewMode === "mine" ? myTasks : allTasks;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -27,7 +64,6 @@ const TaskPage = ({
         });
 
         setExecutions(response.data);
-        console.log(response.data);
       } catch (error) {
         if (error.code === "ERR_CANCELED") {
           return;
@@ -47,7 +83,6 @@ const TaskPage = ({
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false);
-          setError("")
         }
       }
     };
@@ -67,10 +102,25 @@ const TaskPage = ({
   }
   return (
     <main>
-      <header>
-        <h1>Procedure execution</h1>
+      <header className="tasks-header">
+        <div className="info-page">
+          <h1>Procedure execution</h1>
+          <p>Track procedure runs and complete assigned tasks</p>
+        </div>
 
-        <p>Track procedure runs and complete assigned tasks</p>
+        <Can
+          permissions={permissions}
+          permission="tasks.add_procedureexecution"
+        >
+          <button
+            type="button"
+            className="add-button"
+            onClick={() => navigation("/execution/create")}
+          >
+            <Plus size={21} />
+            Start execution
+          </button>
+        </Can>
       </header>
 
       <div className="task-view-toggle">
@@ -79,7 +129,7 @@ const TaskPage = ({
           className={viewMode === "all" ? "active" : ""}
           onClick={() => setViewMode("all")}
         >
-          All executions
+          All Tasks {allTasks.length}
         </button>
 
         <button
@@ -87,11 +137,11 @@ const TaskPage = ({
           className={viewMode === "mine" ? "active" : ""}
           onClick={() => setViewMode("mine")}
         >
-          My tasks
+          My Tasks {myTasks.length}
         </button>
       </div>
 
-      <div>
+      <div className="task-list-toolbar">
         <SearchInput
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -102,16 +152,41 @@ const TaskPage = ({
           <option value="all">All assignees</option>
         </select>
       </div>
-            {executions.map((execution)=>(
-                execution.tasks.map((task)=>(
-                    <TaskItem 
-                        key={task.task_id}
-                        task={task}
-                        execution={execution}
+
+      <div className="task-board">
+        {statusColumns.map((column) => {
+          const columnTasks = visibleTasks.filter(
+            (item) => item.task.status === column.value,
+          );
+
+          return (
+            <section
+              className={`task-column task-column--${column.value}`}
+              key={column.value}
+            >
+              <header className="task-column__header">
+                <h2>{column.label.toUpperCase()}</h2>
+
+                <span>{columnTasks.length}</span>
+              </header>
+
+              <div className="task-column__list">
+                {columnTasks.length === 0 ? (
+                  <p className="task-column__empty">No tasks</p>
+                ) : (
+                  columnTasks.map((item) => (
+                    <TaskItem
+                      key={item.task.task_id}
+                      task={item.task}
+                      execution={item.execution}
                     />
-                ))
-                
-            ))}
+                  ))
+                )}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </main>
   );
 };

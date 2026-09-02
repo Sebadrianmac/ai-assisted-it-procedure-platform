@@ -1,0 +1,18 @@
+.task-card {
+    border: 1px solid rgb(112, 109, 109);
+    border-radius: 12px;
+    padding: 7px 5px;
+    height: 175px;
+}
+.deadline-documents
+.task-deadline
+.task-documents {
+    display: flex;
+}
+.task-deadline{
+    float: left;
+}
+.task-documents{
+    float: right;
+    padding-right: 15px;
+}
