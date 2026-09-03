@@ -26,3 +26,8 @@ class CanAssignTask(BasePermission):
         return request.user.has_perm(
             "tasks.assign_task"
         )
+class CanCancelExecution(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.has_perm(
+            "tasks.delete_procedureexecution"
+        )

@@ -36,7 +36,7 @@ const SearchInput = ({
           aria-label="Clear search"
           onClick={clearSearch}
         >
-          ×
+          x
         </button>
       )}
     </div>

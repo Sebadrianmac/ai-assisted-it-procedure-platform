@@ -1,0 +1,134 @@
+.task-list-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.task-list-search {
+  flex: 1;
+  min-width: 240px;
+}
+
+.task-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-filter-field > span {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.task-filter-field select,
+.task-filter-field input {
+  min-width: 145px;
+  height: 44px;
+  padding: 0 12px;
+  color: #334155;
+  background-color: #ffffff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  font: inherit;
+  outline: none;
+}
+
+.task-filter-field select:focus,
+.task-filter-field input:focus {
+  border-color: #2563eb;
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.12);
+}
+
+.task-date-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 15px;
+  height: 44px;
+  padding: 0 14px;
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid #d8dee9;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-date-clear:hover {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border-color: #fecaca;
+}
+
+.task-filter-empty {
+  padding: 22px;
+  margin-bottom: 20px;
+  text-align: center;
+  background-color: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}
+
+.task-filter-empty h3 {
+  margin: 0 0 6px;
+  color: #1e293b;
+}
+
+.task-filter-empty p {
+  margin: 0;
+  color: #64748b;
+}
+
+.task-filter-empty button {
+  margin-top: 14px;
+  padding: 9px 14px;
+  color: #2563eb;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-filter-empty button:hover {
+  background-color: #dbeafe;
+}
+
+@media (max-width: 1350px) {
+  .task-list-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .task-list-search {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .task-list-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-list-search,
+  .task-filter-field,
+  .task-filter-field select,
+  .task-filter-field input,
+  .task-date-clear {
+    width: 100%;
+  }
+}

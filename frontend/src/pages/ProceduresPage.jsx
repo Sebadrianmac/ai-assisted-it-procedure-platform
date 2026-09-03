@@ -79,14 +79,10 @@ const ProceduresPage = ({ permissions = [] }) => {
         ...procedure,
 
         title: displayVersion?.title ?? procedure.title ?? "",
-
         description: displayVersion?.description ?? procedure.description ?? "",
-
         status: displayVersion?.status ?? procedure.status ?? null,
-
         status_label:
           displayVersion?.status_label ?? procedure.status_label ?? "Unknown",
-
         version_number:
           displayVersion?.version_number ?? procedure.version_number ?? null,
 
@@ -102,11 +98,8 @@ const ProceduresPage = ({ permissions = [] }) => {
       ? preparedProcedures
       : preparedProcedures.filter((procedure) => {
           const title = procedure.title?.toLowerCase() ?? "";
-
           const description = procedure.description?.toLowerCase() ?? "";
-
           const statusLabel = procedure.status_label?.toLowerCase() ?? "";
-
           const versionNumber =
             procedure.version_number?.toString().toLowerCase() ?? "";
 

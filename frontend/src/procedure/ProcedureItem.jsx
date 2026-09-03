@@ -45,9 +45,7 @@ const ProcedureItem = ({
     .join(" ");
 
   const displayedAuthor = authorName || procedure.created_by?.username || "—";
-
   const activeVersion = procedure.active_version ?? null;
-
   const currentVersion = procedure.current_version ?? null;
 
   const displayVersion =
@@ -106,18 +104,13 @@ const ProcedureItem = ({
 
       <td>
         <div className="procedure-version-cell">
-          <span className="procedure-version">
-            {versionLabel}
-          </span>
+          <span className="procedure-version">{versionLabel}</span>
 
-          {activeVersion &&
-            currentVersion && (
-              <span className="procedure-version-note">
-                Current:{" "}
-                {currentVersion
-                  .version_number ?? "—"}
-              </span>
-            )}
+          {activeVersion && currentVersion && (
+            <span className="procedure-version-note">
+              Current: {currentVersion.version_number ?? "—"}
+            </span>
+          )}
         </div>
       </td>
 
