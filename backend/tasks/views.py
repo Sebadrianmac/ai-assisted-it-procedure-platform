@@ -5,7 +5,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .permissions import TasksPermissions, CanAssignTask, CanChangeTaskStatus
+from .permissions import (
+    TasksPermissions,
+    CanAssignTask,
+    CanChangeTaskStatus,
+    CanCancelExecution
+    )
 from django.utils import timezone
 from django.db.models import Prefetch
 from django.shortcuts import (
@@ -42,6 +47,7 @@ def tasks_list(request):
                         "started_by",
                     )
                     .order_by("-started_at")
+                    .exclude(status=ProcedureExecution.StatusChoices.CANCELLED)
         )
         data = [
         {
@@ -137,20 +143,17 @@ def tasks_list(request):
         )
 
     if request.method == "POST":
-        validated_data, error_response = (
-             validate_execution_context(request.data)
+        validated_data, error_response = validate_execution_context(
+            request.data
         )
         if error_response:
-             return error_response
+            return error_response
 
         procedure_version = validated_data["procedure_version"]
         context = validated_data["context"]
         deadline = validated_data["deadline"]
-        
-        assignments = request.data.get(
-            "assignments",
-            [],
-        )
+
+        assignments = request.data.get("assignments", [])
 
         assignments_by_step = {
             int(item["procedure_step_id"]): item
@@ -162,7 +165,7 @@ def tasks_list(request):
             return Response(
                 {
                     "steps": (
-                        "Approved procedure version "
+                    "Approved procedure version "
                         "has no steps."
                     )
                 },
@@ -182,20 +185,15 @@ def tasks_list(request):
                 {},
             )
 
-            assigned_to_id = assignment.get(
-                "assigned_to_id"
-            )
-
-            assigned_role_id = assignment.get(
-                "assigned_role_id"
-            )
+            assigned_to_id = assignment.get("assigned_to_id")
+            assigned_role_id = assignment.get("assigned_role_id")
 
             if assigned_to_id and assigned_role_id:
                 return Response(
                     {
                         "assignments": (
                             f"Step {step.id} cannot be assigned "
-                            "to both a user and role."
+                            "to both user and role."
                         )
                     },
                     status=status.HTTP_400_BAD_REQUEST,
@@ -208,21 +206,18 @@ def tasks_list(request):
                 assigned_to_id=assigned_to_id,
                 assigned_role_id=assigned_role_id,
             )
-            return Response({
+
+        return Response(
+            {
                 "execution_id": execution.id,
                 "procedure_version": {
-                    "id": (
-                        procedure_version.id
-                    ),
-                    "title": (
-                        procedure_version.title
-                    ),
+                    "id": procedure_version.id,
+                    "title": procedure_version.title,
                     "version_number": (
-                        procedure_version
-                        .version_number
+                        procedure_version.version_number
                     ),
-                },                
-                "context": context,
+                },
+                "context": execution.context,
                 "execution_status": execution.status,
                 "tasks_count": execution.tasks.count(),
                 "tasks": [
@@ -231,7 +226,6 @@ def tasks_list(request):
                         "step_id": task.procedure_step_id,
                         "description": task.description,
                         "status": task.status,
-
                         "assigned_to": (
                             {
                                 "id": task.assigned_to.id,
@@ -242,7 +236,6 @@ def tasks_list(request):
                             if task.assigned_to
                             else None
                         ),
-
                         "assigned_role": (
                             {
                                 "id": task.assigned_role.id,
@@ -257,34 +250,12 @@ def tasks_list(request):
                         "assigned_role",
                     )
                 ],
-                "started_by": {
-                    "id": request.user.id,
-                    "username": (
-                        request.user.username
-                    ),
-                    "first_name": (
-                        request.user.first_name
-                    ),
-                    "last_name": (
-                        request.user.last_name
-                    ),
-                },
-                "started_at": (
-                    execution.started_at
-                ),
+                "started_at": execution.started_at,
                 "deadline": execution.deadline,
-                "completed_at": (
-                    execution.completed_at
-                ),
+                "completed_at": execution.completed_at,
             },
             status=status.HTTP_201_CREATED,
         )
-        else: 
-            return Response({
-                "steps": "Approved procedure version has no steps."
-            },
-            status=status.HTTP_400_BAD_REQUEST
-            )
     
 @api_view(["PUT"])
 @permission_classes([
@@ -455,6 +426,157 @@ def task_assignment(request, task_id):
             else None
         ),
         "updated_at": task.updated_at,
+    },
+    status=status.HTTP_200_OK,
+)
+@api_view(["GET"])
+@permission_classes([
+    IsAuthenticated,
+    TasksPermissions,
+])
+def execution_detail(request, execution_id):
+    execution = get_object_or_404(
+        ProcedureExecution.objects
+        .select_related(
+            "procedure_version",
+            "started_by",
+        )
+        .prefetch_related(
+            Prefetch(
+                "tasks",
+                queryset=(
+                    Task.objects
+                    .select_related(
+                        "procedure_step",
+                        "assigned_to",
+                        "assigned_role",
+                    )
+                    .prefetch_related(
+                        "procedure_step__documents"
+                    )
+                ),
+            )
+        ),
+        id=execution_id,
+    )
+
+    return Response(
+        {
+            "id": execution.id,
+            "context": execution.context,
+            "status": execution.status,
+            "started_at": execution.started_at,
+            "deadline": execution.deadline,
+            "completed_at": execution.completed_at,
+
+            "procedure_version": {
+                "id": execution.procedure_version.id,
+                "title": execution.procedure_version.title,
+                "version_number": (
+                    execution
+                    .procedure_version
+                    .version_number
+                ),
+            },
+
+            "started_by": {
+                "id": execution.started_by.id,
+                "username": execution.started_by.username,
+                "first_name": (
+                    execution.started_by.first_name
+                ),
+                "last_name": (
+                    execution.started_by.last_name
+                ),
+            },
+
+            "tasks": [
+                {
+                    "task_id": task.id,
+                    "step_id": task.procedure_step_id,
+                    "description": task.description,
+                    "status": task.status,
+
+                    "assigned_to": (
+                        {
+                            "id": task.assigned_to.id,
+                            "username": (
+                                task.assigned_to.username
+                            ),
+                            "first_name": (
+                                task.assigned_to.first_name
+                            ),
+                            "last_name": (
+                                task.assigned_to.last_name
+                            ),
+                        }
+                        if task.assigned_to
+                        else None
+                    ),
+
+                    "assigned_role": (
+                        {
+                            "id": task.assigned_role.id,
+                            "name": task.assigned_role.name,
+                        }
+                        if task.assigned_role
+                        else None
+                    ),
+                }
+                for task in execution.tasks.all()
+            ],
+        },
+        status=status.HTTP_200_OK,
+    )
+@api_view(["PUT"])
+@permission_classes([
+    IsAuthenticated,
+    CanCancelExecution
+])
+@transaction.atomic
+def execution_cancel(request, execution_id):
+    execution = get_object_or_404(
+        ProcedureExecution.objects
+        .select_for_update(),
+        id=execution_id,
+    )
+    allowed_statuses = [
+        ProcedureExecution.StatusChoices.CREATED,
+        ProcedureExecution.StatusChoices.IN_PROGRESS,
+    ]
+
+    if execution.status not in allowed_statuses:
+        return Response(
+            {
+                "detail": (
+                    "Only created or in-progress "
+                    "executions can be cancelled."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    execution.tasks.exclude(
+        status=Task.StatusChoices.COMPLETED,
+    ).update(
+        status=Task.StatusChoices.CANCELLED,
+        updated_at=timezone.now(),
+    )
+    execution.status = (
+        ProcedureExecution.StatusChoices.CANCELLED
+    )
+
+    execution.save(
+        update_fields=[
+            "status",
+        ]
+    )
+    return Response(
+    {
+        "id": execution.id,
+        "status": execution.status,
+        "status_label": (
+            execution.get_status_display()
+        ),
     },
     status=status.HTTP_200_OK,
 )

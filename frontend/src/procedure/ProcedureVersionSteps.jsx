@@ -50,9 +50,7 @@ const ProcedureVersionSteps = ({ version }) => {
                       <div className={"step-reference-list"}>
                         {documents.map((document) => {
                           const url = getDocumentUrl(document);
-
                           const Icon = document.file_url ? FileText : Link2;
-
                           const content = (
                             <>
                               <Icon size={17} />

@@ -277,7 +277,7 @@ const ExecutionCreate = () => {
 
               <input
                 id="deadline"
-                type="datetime-local"
+                type="date"
                 value={deadline}
                 onChange={(event) => setDeadline(event.target.value)}
               />
