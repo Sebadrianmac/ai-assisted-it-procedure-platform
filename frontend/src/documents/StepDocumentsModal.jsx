@@ -16,9 +16,7 @@ const StepDocumentsModal = ({
     useState(selectedDocumentIds);
 
   const [searchQuery, setSearchQuery] = useState("");
-
   const [selectedType, setSelectedType] = useState("all");
-
   const availableTypes = useMemo(() => {
     return [...new Set(documents.map((document) => document.document_type))];
   }, [documents]);
@@ -59,7 +57,9 @@ const StepDocumentsModal = ({
   };
 
   return (
-    <div className={"step-documents-backdrop"} onMouseDown={onClose}>
+    <div 
+    className={"step-documents-backdrop"}
+     onMouseDown={onClose}>
       <section
         className={"step-documents-modal"}
         role="dialog"

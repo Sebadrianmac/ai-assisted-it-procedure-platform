@@ -183,6 +183,7 @@ const ProceduresPage = ({ permissions = [] }) => {
   };
 
   if (isLoading) {
+    
     return <p>Loading procedures...</p>;
   }
 
