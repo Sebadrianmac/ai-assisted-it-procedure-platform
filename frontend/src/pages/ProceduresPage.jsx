@@ -1,29 +1,30 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  SlidersHorizontal,
+} from "lucide-react";
 import "../../styles/ProcedureTable.css";
 import api from "../api/api";
 import ProcedureItem from "../procedure/ProcedureItem";
-import SearchInput from "./components/SearchInput";
-
-const STATUS_ORDER = {
-  in_progress: 0,
-  clarification_needed: 1,
-  created: 2,
-  completed: 3,
-  rejected: 4,
-};
+import ProcedureSearchTool from "../procedure/ProcedureSearchTool";
 
 const ProceduresPage = ({ permissions = [] }) => {
   const navigate = useNavigate();
-
+  const PAGE_SIZE = 8;
   const [procedures, setProcedures] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteError, setDeleteError] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [openActionsId, setOpenActionsId] = useState(null);
   const [deletingProcedureId, setDeletingProcedureId] = useState(null);
+
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortDate, setSortDate]=useState("updated_desc");
 
   const canCreateProcedure = permissions.includes("procedures.add_procedure");
 
@@ -90,41 +91,63 @@ const ProceduresPage = ({ permissions = [] }) => {
       };
     });
   }, [procedures]);
-
   const filteredProcedures = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
 
-    const result = !query
-      ? preparedProcedures
-      : preparedProcedures.filter((procedure) => {
-          const title = procedure.title?.toLowerCase() ?? "";
-          const description = procedure.description?.toLowerCase() ?? "";
-          const statusLabel = procedure.status_label?.toLowerCase() ?? "";
-          const versionNumber =
-            procedure.version_number?.toString().toLowerCase() ?? "";
+    return preparedProcedures
+      .filter((procedure) => {
+        const matchesStatus =
+          statusFilter === "all" || procedure.status === statusFilter;
 
-          return (
-            title.includes(query) ||
-            description.includes(query) ||
-            statusLabel.includes(query) ||
-            versionNumber.includes(query)
-          );
-        });
+        const title = procedure.title?.toLowerCase() ?? "";
+        const description = procedure.description?.toLowerCase() ?? "";
+        const statusLabel = procedure.status_label?.toLowerCase() ?? "";
+        const versionNumber =
+          procedure.version_number?.toString().toLowerCase() ?? "";
 
-    return [...result].sort((firstProcedure, secondProcedure) => {
-      const firstStatusOrder = STATUS_ORDER[firstProcedure.status] ?? 999;
+        const matchesSearch =
+          !query ||
+          title.includes(query) ||
+          description.includes(query) ||
+          statusLabel.includes(query) ||
+          versionNumber.includes(query);
 
-      const secondStatusOrder = STATUS_ORDER[secondProcedure.status] ?? 999;
+        return matchesSearch && matchesStatus;
+      })
+    .sort((a, b) => {
+      const direction = sortDate.endsWith("asc") ? 1 : -1;
 
-      if (firstStatusOrder !== secondStatusOrder) {
-        return firstStatusOrder - secondStatusOrder;
-      }
+      const field = sortDate.startsWith("created")
+        ? "created_at"
+        : "updated_at";
+
       return (
-        new Date(secondProcedure.updated_at).getTime() -
-        new Date(firstProcedure.updated_at).getTime()
+        (new Date(a[field]).getTime() - new Date(b[field]).getTime()) *
+        direction
       );
     });
-  }, [searchQuery, preparedProcedures]);
+}, [
+  preparedProcedures,
+  searchQuery,
+  statusFilter,
+  sortDate,
+]);
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredProcedures.length / PAGE_SIZE),
+  );
+  useEffect(() => setPage(1), [searchQuery, statusFilter]);
+  useEffect(() => {
+    if (page > pageCount) setPage(pageCount);
+  }, [page, pageCount]);
+
+  const first = filteredProcedures.length ? (page - 1) * PAGE_SIZE + 1 : 0;
+  const last = Math.min(page * PAGE_SIZE, filteredProcedures.length);
+
+  const visibleProcedrue = filteredProcedures.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE,
+  );
 
   const deleteProcedure = async (procedureId) => {
     try {
@@ -172,35 +195,18 @@ const ProceduresPage = ({ permissions = [] }) => {
       <div className="procedures-toolbar">
         <div className="procedures-header">
           <h1>Procedures</h1>
-
           <p>Manage IT procedures</p>
         </div>
 
-        <div className="procedures-controls">
-          <SearchInput
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            placeholder={"Search procedures..."}
-          />
-
-          <button type="button" className={"procedure-control-button"}>
-            Filter
-          </button>
-
-          <button type="button" className={"procedure-control-button"}>
-            Sort
-          </button>
-
-          {canCreateProcedure && (
-            <button
-              type="button"
-              className={"procedure-create-button"}
-              onClick={() => navigate("/procedure/create")}
-            >
-              Create procedure
-            </button>
-          )}
-        </div>
+        <ProcedureSearchTool
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          canCreateProcedure={canCreateProcedure}
+          sortDate={sortDate}
+          setSortDate={setSortDate}
+        />
       </div>
 
       {deleteError && <p className="procedures-error">{deleteError}</p>}
@@ -231,28 +237,69 @@ const ProceduresPage = ({ permissions = [] }) => {
             </thead>
 
             <tbody>
-              {filteredProcedures.map((procedure) => (
-                <ProcedureItem
-                  key={procedure.id}
-                  procedure={procedure}
-                  permissions={permissions}
-                  isActionsOpen={openActionsId === procedure.id}
-                  isDeleting={deletingProcedureId === procedure.id}
-                  onActionsClose={() => {
-                    setOpenActionsId(null);
-                  }}
-                  onActionsToggle={() => {
-                    setOpenActionsId((currentId) =>
-                      currentId === procedure.id ? null : procedure.id,
-                    );
-                  }}
-                  onDeleteProc={deleteProcedure}
-                />
-              ))}
+              {isLoading ? (
+                <tr>
+                  <td colSpan="7" className="empty-row">
+                    Loading Procedure...
+                  </td>
+                </tr>
+              ) : procedures.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="empty-row">
+                    No procedures found.
+                  </td>
+                </tr>
+              ) : (
+                visibleProcedrue.map((procedure) => (
+                  <ProcedureItem
+                    key={procedure.id}
+                    procedure={procedure}
+                    permissions={permissions}
+                    isActionsOpen={openActionsId === procedure.id}
+                    isDeleting={deletingProcedureId === procedure.id}
+                    onActionsClose={() => {
+                      setOpenActionsId(null);
+                    }}
+                    onActionsToggle={() => {
+                      setOpenActionsId((currentId) =>
+                        currentId === procedure.id ? null : procedure.id,
+                      );
+                    }}
+                    onDeleteProc={deleteProcedure}
+                  />
+                ))
+              )}
             </tbody>
           </table>
         )}
       </div>
+      <footer className="table-footer">
+        <p>
+          Showing {first} - {last} of {filteredProcedures.length} procedures
+        </p>
+        <nav className="pagination">
+          <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+            <ChevronLeft />
+          </button>
+          {Array.from({ length: pageCount }, (_, index) => index + 1)
+            .slice(Math.max(0, page - 3), Math.max(3, page + 2))
+            .map((number) => (
+              <button
+                key={number}
+                className={number === page ? "active" : ""}
+                onClick={() => setPage(number)}
+              >
+                {number}
+              </button>
+            ))}
+          <button
+            disabled={page === pageCount}
+            onClick={() => setPage(page + 1)}
+          >
+            <ChevronRight />
+          </button>
+        </nav>
+      </footer>
     </section>
   );
 };
