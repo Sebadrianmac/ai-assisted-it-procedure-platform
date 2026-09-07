@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 
 import api from "../api/api";
-
 import ProcedureReviewComment from "../procedure/ProcedureReviewComment";
 import ProcedureEditFields from "../procedure/edit/ProcedureEditFields";
 import ProcedureStepsEditor from "../procedure/edit/ProcedureStepsEditor";
@@ -409,41 +408,51 @@ const EditProcedurePage = ({ permissions = [] }) => {
         )}
 
         <div
-          className={`edit-layout ${isCreateMode ? "edit-layout-single" : ""}`}
-        >
-          <div className="edit-main-content">
-            <ProcedureEditFields
-              title={title}
-              description={description}
-              disabled={isFormDisabled}
-              onTitleChange={setTitle}
-              onDescriptionChange={setDescription}
-            />
+  className={`edit-layout ${
+    isCreateMode ? "edit-layout-single" : ""
+  }`}
+>
+  <div className="edit-main-content">
+    <ProcedureEditFields
+      title={title}
+      description={description}
+      disabled={isFormDisabled}
+      onTitleChange={setTitle}
+      onDescriptionChange={setDescription}
+    />
 
-            <ProcedureStepsEditor
-              steps={steps}
-              documents={documents}
-              isLoadingDocuments={isLoadingDocuments}
-              documentsError={documentsError}
-              disabled={isFormDisabled}
-              onStepChange={changeStepDescription}
-              onStepDocumentsChange={changeStepDocuments}
-              onStepAdd={addStep}
-              onStepRemove={removeStep}
-            />
-          </div>
+    <ProcedureStepsEditor
+      steps={steps}
+      documents={documents}
+      isLoadingDocuments={isLoadingDocuments}
+      documentsError={documentsError}
+      disabled={isFormDisabled}
+      onStepChange={changeStepDescription}
+      onStepDocumentsChange={changeStepDocuments}
+      onStepAdd={addStep}
+      onStepRemove={removeStep}
+    />
+  </div>
 
-          {!isCreateMode && (
-            <ProcedureVersionInformation
-              procedure={procedure}
-              currentVersion={currentVersion}
-              activeVersion={activeVersion}
-              statusLabel={statusLabel}
-              isNewRevision={isNewRevision}
-            />
-          )}
-        </div>
+  {!isCreateMode && (
+    <aside className="edit-sidebar">
+      <ProcedureVersionInformation
+        procedure={procedure}
+        currentVersion={currentVersion}
+        activeVersion={activeVersion}
+        statusLabel={statusLabel}
+        isNewRevision={isNewRevision}
+      />
 
+      {procedure?.active_version?.review_comment && (
+        <ProcedureReviewComment
+          version={procedure.active_version}
+        />
+      )}
+    </aside>
+  )}
+</div>
+      
         {error && <p className="edit-form-error">{error}</p>}
 
         {successMessage && (
@@ -498,9 +507,6 @@ const EditProcedurePage = ({ permissions = [] }) => {
         />
       )}
 
-      {procedure?.active_version?.review_comment && (
-        <ProcedureReviewComment version={procedure.active_version} />
-      )}
     </section>
   );
 };

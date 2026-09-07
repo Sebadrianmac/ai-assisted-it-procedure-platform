@@ -1,0 +1,143 @@
+.review-table-row {
+  transition: background-color 0.15s ease;
+}
+
+.review-table-row:hover {
+  background-color: #f8fbff;
+}
+
+.review-table-row:last-child td {
+  border-bottom: none;
+}
+
+/* Procedure title and description */
+
+.review-procedure-information {
+  min-width: 0;
+}
+
+.review-procedure-information strong {
+  display: block;
+  overflow: hidden;
+  color: #111827;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.review-procedure-information p {
+  display: -webkit-box;
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+/* Version */
+
+.review-version {
+  color: #334155;
+  font-weight: 600;
+}
+
+/* Change type */
+
+.review-change-type {
+  display: inline-flex;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+
+.review-change-minor {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.review-change-major {
+  color: #7e22ce;
+  background-color: #faf5ff;
+  border: 1px solid #e9d5ff;
+}
+.review-change-null {
+  color: #4555e4;
+  background-color: #faf5ff;
+  border: 1px solid #e9d5ff;
+}
+
+
+
+.review-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  color: #0759d9;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+}
+
+.review-status-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  background-color: #0761ee;
+  border-radius: 50%;
+}
+
+/* Actions */
+
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.review-button {
+  padding: 8px 14px;
+  color: #0761ee;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #ffffff;
+  border: 1px solid #0761ee;
+  border-radius: 7px;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.review-button:hover {
+  color: #ffffff;
+  background-color: #0761ee;
+}
+
+.review-more-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #475569;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.review-more-button:hover {
+  background-color: #eef2f7;
+}

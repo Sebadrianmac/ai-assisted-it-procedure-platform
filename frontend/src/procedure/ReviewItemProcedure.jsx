@@ -1,78 +1,96 @@
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-
-const ReviewItemProcedure = ({ permissions = [], reviewProcedure }) => {
+import { MoreVertical } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import "../../styles/ReviewItemProcedure.css";
+const ReviewItemProcedure = ({ reviewProcedure, permissions = [] }) => {
   const navigate = useNavigate();
-  const formatDate = (dateValue) => {
-    if (!dateValue) {
-      return "—";
-    }
 
-    const date = new Date(dateValue);
+  const {
+    id,
+    title,
+    description,
+    version_number,
+    change_type,
+    status_label,
+    submitted_at,
+    created_by,
+    steps_count,
+  } = reviewProcedure;
 
-    if (Number.isNaN(date.getTime())) {
-      return "—";
-    }
+  const submittedBy =
+    [created_by?.first_name, created_by?.last_name].filter(Boolean).join(" ") ||
+    created_by?.username ||
+    "Unknown";
 
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date);
-  };
+  const submittedDate = submitted_at
+    ? new Intl.DateTimeFormat("en", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(new Date(submitted_at))
+    : "Not submitted";
 
-  const submittedBy = [
-    reviewProcedure.created_by?.first_name,
-    reviewProcedure.created_by?.last_name,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const changeTypeLabel =
+    change_type === "major" ? "Major update" : (change_type === "minor" ? "Minor update" : "Created");
 
+  const canReview = permissions.includes("procedures.approve_procedure");
+  
   const openProcedure = () => {
     navigate(`/review/${reviewProcedure.id}`);
   };
-
-  const handleRowKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      openProcedure();
-    }
-  };
   return (
-    <tr
-      className="review-procedure-row"
+    <tr 
+      className="review-table-row"
       onClick={openProcedure}
-      tabIndex={0}
-      onKeyDown={handleRowKeyDown}
     >
       <td>
-        <div>{reviewProcedure.title}</div>
+        <div className="review-procedure-information">
+          <strong>{title}</strong>
+
+          {description && <p>{description}</p>}
+        </div>
       </td>
 
       <td>
-        <div>{reviewProcedure.version_number || "Draft"}</div>
+        <span className="review-version">v{version_number}</span>
       </td>
 
       <td>
-        <div>{reviewProcedure.change_type || "—"}</div>
+        <span className={`review-change-type review-change-${change_type}`}>
+          {changeTypeLabel}
+        </span>
       </td>
+
+      <td>{submittedBy}</td>
+
+      <td>{submittedDate}</td>
+
       <td>
-        <div>{reviewProcedure.steps_count ?? 0}</div>
+        {steps_count} {steps_count === 1 ? "step" : "steps"}
       </td>
 
       <td>
-        <div>{submittedBy || reviewProcedure.created_by?.username || "—"}</div>
-        <div>{formatDate(reviewProcedure.submitted_at)}</div>
+        <span className="review-status">
+          <span className="review-status-dot" />
+          {status_label ?? "Waiting for approval"}
+        </span>
       </td>
 
       <td>
-        <Link to="/review/${reviewProcedure.id}">
-          <ArrowRight size={28} />
-        </Link>
+        <div className="review-actions">
+          {canReview && (
+            <button
+              type="button"
+              className="review-button"
+              onClick={() => navigate(`/review/${id}`)}
+            >
+              Review
+            </button>
+          )}
+
+        </div>
       </td>
     </tr>
   );
 };
+
 export default ReviewItemProcedure;

@@ -17,6 +17,8 @@
   box-shadow: 0 8px 24px rgb(16 24 40 / 6%);
 }
 
+/* Header */
+
 .edit-form-header {
   display: flex;
   align-items: center;
@@ -41,13 +43,16 @@
   text-transform: uppercase;
 }
 
+/* Status */
+
 .current-status {
   padding: 7px 12px;
   color: #344054;
-  background-color: #f2f4f7;
-  border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
+  white-space: nowrap;
+  background-color: #f2f4f7;
+  border-radius: 999px;
 }
 
 .status-created {
@@ -75,6 +80,8 @@
   background-color: #fffaeb;
 }
 
+/* Waiting message */
+
 .edit-status-message {
   padding: 13px 15px;
   color: #6941c6;
@@ -82,6 +89,8 @@
   border: 1px solid #d9d6fe;
   border-radius: 10px;
 }
+
+/* Main layout */
 
 .edit-layout {
   display: grid;
@@ -96,6 +105,8 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Left column */
+
 .edit-main-content {
   display: flex;
   flex-direction: column;
@@ -103,12 +114,23 @@
   min-width: 0;
 }
 
+/* Right column */
+
+.edit-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+/* Messages */
+
 .edit-form-error,
 .edit-form-success {
   margin: 0;
   padding: 12px 14px;
-  border-radius: 8px;
   font-size: 14px;
+  border-radius: 8px;
 }
 
 .edit-form-error {
@@ -123,6 +145,8 @@
   border: 1px solid #abefc6;
 }
 
+/* Form actions */
+
 .edit-form-actions {
   display: flex;
   justify-content: flex-end;
@@ -133,9 +157,9 @@
 
 .edit-form-actions button {
   padding: 10px 17px;
-  border-radius: 8px;
   font: inherit;
   font-weight: 600;
+  border-radius: 8px;
   cursor: pointer;
 }
 
@@ -145,10 +169,18 @@
   border: 1px solid #d0d5dd;
 }
 
+.edit-cancel-button:hover {
+  background-color: #f9fafb;
+}
+
 .edit-save-button {
   color: #444ce7;
   background-color: #ffffff;
   border: 1px solid #6172f3;
+}
+
+.edit-save-button:hover {
+  background-color: #eef4ff;
 }
 
 .edit-submit-button {
@@ -157,14 +189,25 @@
   border: 1px solid #6172f3;
 }
 
+.edit-submit-button:hover {
+  background-color: #444ce7;
+  border-color: #444ce7;
+}
+
 .edit-form-actions button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
 
+/* Responsive */
+
 @media (max-width: 900px) {
   .edit-layout {
     grid-template-columns: 1fr;
+  }
+
+  .edit-sidebar {
+    width: 100%;
   }
 }
 
@@ -175,6 +218,11 @@
 
   .procedure-edit-form {
     padding: 22px 18px;
+  }
+
+  .edit-form-header {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .edit-form-actions {

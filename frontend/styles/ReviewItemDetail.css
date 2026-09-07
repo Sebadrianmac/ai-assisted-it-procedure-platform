@@ -1,0 +1,131 @@
+.review-item-page {
+  width: 100%;
+  padding: 28px;
+  margin-top: 10px;
+  box-sizing: border-box;
+  color: #111827;
+  background-color: #f8fafc;
+}
+
+.review-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 15px;
+  padding: 0;
+  color: #475569;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.review-back-button:hover {
+  color: #0761ee;
+}
+
+.review-item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.review-breadcrumb {
+  margin: 0 0 10px;
+  color: #0761ee;
+  font-size: 14px;
+}
+
+.review-breadcrumb span {
+  margin: 0 7px;
+  color: #94a3b8;
+}
+
+.review-item-header h1 {
+  margin: 0;
+  color: #111827;
+  font-size: 34px;
+  line-height: 1.2;
+}
+
+.review-item-subtitle {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 16px;
+}
+
+.review-waiting-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 9px 14px;
+  color: #a15c00;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: #fffaf0;
+  border: 1px solid #f6cf88;
+  border-radius: 7px;
+}
+
+.review-item-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.review-item-detail {
+  min-width: 0;
+}
+
+.review-item-comment {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+}
+
+.review-detail-message,
+.review-detail-error {
+  margin: 30px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+}
+
+.review-detail-error {
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+@media (max-width: 1050px) {
+  .review-item-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .review-item-comment {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .review-item-page {
+    padding: 16px;
+  }
+
+  .review-item-header {
+    flex-direction: column;
+  }
+
+  .review-item-header h1 {
+    font-size: 28px;
+  }
+
+  .review-waiting-status {
+    margin-top: 0;
+  }
+}

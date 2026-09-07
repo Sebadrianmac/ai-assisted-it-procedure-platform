@@ -1,110 +1,185 @@
-
-.procedures-section{
-    padding: 25px;
-    margin-top: 25px;
-    width: 100%;
-    border: 1px solid #dbe2ea;
-    border-radius: 20px;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.procedures-section {
+  width: 70%;
+  margin-top: 25px;
+  padding: 25px;
+  background-color: #ffffff;
+  border: 1px solid #dbe2ea;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgb(0 0 0 / 20%);
+  box-sizing: border-box;
 }
+
+
 .procedures-toolbar {
-  display: grid;
-  grid-template-columns:
-    280px
-    minmax(350px, 650px);
+  display: flex;
   align-items: center;
-  justify-content: start;
+  justify-content: space-between;
   gap: 24px;
   margin-bottom: 24px;
 }
+
+.procedures-header {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.procedures-header h1 {
+  margin: 0;
+  color: #1f2937;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 32px;
+}
+
+.procedures-header p {
+  margin: 5px 0 0;
+  color: #64748b;
+}
+
 .procedures-controls {
   display: flex;
+  flex: 1;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.procedure-filter {
+  position: relative;
+  flex: 0 0 180px;
+  min-width: 180px;
+}
+
+.procedure-filter select {
   width: 100%;
-  max-width: none;
+  height: 44px;
+  padding: 10px 40px 10px 14px;
+  appearance: none;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
 }
 
-.procedures-header{
-    margin-bottom: 0;
+
+.procedure-filter select:focus {
+  border-color: var(--doc-blue);
+  box-shadow: 0 0 0 3px rgb(7 97 238 / 12%);
 }
-.procedures-header h1{
-    font-size: 32px;
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-}
-.procedures-header p{
-    margin-top: 5px;
-    color: gray;
+.procedure-filter svg {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
-.procedures-table-container{
-    border: 1px solid #cbcdcf;
-    border-radius: 12px;
-    overflow-x: auto;
-    width: 75%;
+.procedure-create-button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-.procedures-table{
-    width: 100%;
-    min-width: 500px;
-    border-collapse: collapse;
-    table-layout: fixed;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+
+.procedure-create-button {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  background-color: var(--doc-blue);
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgb(7 97 238 / 20%);
+  cursor: pointer;
 }
-.procedures-table thead{
-    background-color: #f5f7fa;
+
+.procedure-create-button:hover {
+  filter: brightness(0.95);
 }
+
+.procedure-create-button:focus-visible {
+  outline: 3px solid rgb(7 97 238 / 25%);
+  outline-offset: 2px;
+}
+
+
+.procedures-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #cbcdcf;
+  border-radius: 12px;
+}
+
+.procedures-table {
+  width: 100%;
+  min-width: 700px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.procedures-table thead {
+  background-color: #f5f7fa;
+}
+
 .column-procedure {
   width: 46%;
 }
 
 .column-version {
-  width: 9%;
+  width: 10%;
 }
 
 .column-status {
-  width: 12%;
+  width: 16%;
 }
 
 .column-created {
-  width: 17%;
+  width: 18%;
 }
 
 .column-actions {
   width: 10%;
 }
+
 .procedures-table th {
-    text-align: left;
-    font-size: 14px;
-    padding: 14px 16px;
-    color: #b6b8bd;
-    text-transform: uppercase;
-    font-weight: 700;
+  padding: 14px 16px;
+  color: #8b95a5;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: left;
+  text-transform: uppercase;
 }
-.procedures-table td{
-    padding: 14px 16px;
-    font-size: 16px;
-    border-bottom: 1px solid gainsboro;
-    color: #1f2937;
+
+.procedures-table td {
+  padding: 14px 16px;
+  color: #1f2937;
+  font-size: 16px;
+  border-bottom: 1px solid #dcdcdc;
 }
-.procedures-table tbody tr:hover{
+
+.procedures-table tbody tr:hover {
   background-color: #f8fafc;
 }
+
 .procedures-table tbody tr:last-child td {
   border-bottom: none;
 }
-.procedures-table th:first-child {
-  width: 32%;
+
+
+.procedure-title {
+  overflow: hidden;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.procedure-title{
-    overflow: hidden;
-    color: #1f2937;
-    font-weight: 600;
-    font-size: 14px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
+
 .procedure-description {
   display: -webkit-box;
   margin-top: 4px;
@@ -112,27 +187,65 @@
   color: #64748b;
   font-size: 13px;
   line-height: 1.4;
-  white-space: normal;
   overflow-wrap: break-word;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .procedure-status {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    text-transform: capitalize;
+  display: inline-block;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+  white-space: nowrap;
+  border-radius: 12px;
 }
 
-@media (max-width: 850px) {
+
+.procedures-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+}
+
+
+@media (max-width: 1000px) {
   .procedures-toolbar {
-    grid-template-columns: 1fr;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .procedures-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .procedures-section {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .procedures-header h1 {
+    font-size: 28px;
+  }
+
+  .procedures-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .procedure-status-filter {
+    flex-basis: auto;
+    width: 100%;
+  }
+
+  .procedure-create-button {
     width: 100%;
   }
 }

@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { ChevronLeft, Clock3 } from "lucide-react";
+import { useNavigate, useParams } from "react-router-dom";
+
 import api from "../api/api";
 import ProcedureVersionContent from "./ProcedureVersionContent";
-import ProcedureVersionHistory from "./ProcedureVersionHistory";
 import ReviewItemComment from "./ReviewItemComment";
-import "../../styles/ReviewItemPage.css" 
+
+import "../../styles/ReviewItemDetail.css";
 
 const ReviewItemDetail = () => {
   const { reviewProcedureId } = useParams();
+  const navigate = useNavigate();
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [reviewVersion, setReviewVersion] = useState(null);
-  
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -21,16 +25,18 @@ const ReviewItemDetail = () => {
         setError("");
 
         const response = await api.get(
-          `/api/procedures/review/${reviewProcedureId}`,
+          `/api/procedures/review/${reviewProcedureId}/`,
           {
             signal: controller.signal,
           },
         );
 
-        const procedureData = response.data;
-        setReviewVersion(procedureData);
+        setReviewVersion(response.data);
       } catch (error) {
-        if (error.code === "ERR_CANCELED") {
+        if (
+          error.code === "ERR_CANCELED" ||
+          controller.signal.aborted
+        ) {
           return;
         }
 
@@ -39,9 +45,11 @@ const ReviewItemDetail = () => {
         if (responseStatus === 401) {
           setError("You need to log in.");
         } else if (responseStatus === 403) {
-          setError("You do not have permission " + "to view this procedure.");
+          setError(
+            "You do not have permission to view this procedure.",
+          );
         } else if (responseStatus === 404) {
-          setError("Procedure was not found.");
+          setError("Procedure version was not found.");
         } else {
           setError("Failed to load procedure.");
         }
@@ -55,34 +63,77 @@ const ReviewItemDetail = () => {
     };
 
     loadProcedure();
+
     return () => {
       controller.abort();
     };
   }, [reviewProcedureId]);
-    if (isLoading) {
-    return <p>Loading procedure...</p>;
-    }
 
-    if (error) {
-    return <p>{error}</p>;
-    }
+  if (isLoading) {
+    return (
+      <div className="review-detail-message">
+        Loading procedure...
+      </div>
+    );
+  }
 
-    if (!reviewVersion) {
-    return <p>Procedure version not found.</p>;
-    }
+  if (error) {
+    return (
+      <div className="review-detail-error">
+        {error}
+      </div>
+    );
+  }
+
+  if (!reviewVersion) {
+    return (
+      <div className="review-detail-message">
+        Procedure version not found.
+      </div>
+    );
+  }
+
   return (
-    <div className="review-item-page">
-      <main className="rieview-item-detail">
-        <ProcedureVersionContent
-        version={reviewVersion}
-        />
-      </main>
-      <aside className="review-item-comment">
-        <ReviewItemComment 
-            version={reviewVersion}
-        />
-      </aside>
-    </div>
+    <section className="review-item-page">
+      <button
+        type="button"
+        className="review-back-button"
+        onClick={() => navigate("/review")}
+      >
+        <ChevronLeft size={18} />
+        Back to review list
+      </button>
+
+      <header className="review-item-header">
+        <div>
+          <p className="review-breadcrumb">
+            Procedures <span>/</span> Review
+          </p>
+
+          <h1>Review procedure</h1>
+
+          <p className="review-item-subtitle">
+            Review the submitted version before approval
+          </p>
+        </div>
+
+        <span className="review-waiting-status">
+          <Clock3 size={17} />
+          {reviewVersion.status_label ?? "Waiting for approval"}
+        </span>
+      </header>
+
+      <div className="review-item-layout">
+        <main className="review-item-detail">
+          <ProcedureVersionContent version={reviewVersion} />
+        </main>
+
+        <aside className="review-item-comment">
+          <ReviewItemComment version={reviewVersion} />
+        </aside>
+      </div>
+    </section>
   );
 };
+
 export default ReviewItemDetail;
