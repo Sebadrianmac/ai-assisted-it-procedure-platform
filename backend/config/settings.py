@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'users',
     'procedures',
     'tasks',
+    'ai.apps.AiConfig'
 ]
 
 MIDDLEWARE = [
@@ -152,3 +153,13 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 AUTH_USER_MODEL = "users.User"
+
+LOCAL_AI_BASE_URL = os.getenv(
+    "LOCAL_AI_BASE_URL",
+    "http://127.0.0.1:8080",
+)
+
+LOCAL_AI_MODEL = os.getenv(
+    "LOCAL_AI_MODEL",
+    "Qwen/Qwen3-4B-GGUF:Q4_K_M",
+)
