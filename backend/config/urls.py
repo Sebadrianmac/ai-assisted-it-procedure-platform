@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/auth/',include('users.urls')),
     path('api/procedures/',include('procedures.urls')),
     path('api/tasks/',include('tasks.urls')),
+    path('api/ai/', include("ai.urls")),
 
 ]
 if settings.DEBUG:

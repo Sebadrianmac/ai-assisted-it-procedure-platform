@@ -14,7 +14,7 @@ from ..models import Document
 from ..permissions import DocumentPermission
 from ..serializers import serialize_document
 from ..validators import validate_document_content, validate_document_update
-
+from ai.embedding_service import index_document
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, DocumentPermission])
@@ -55,6 +55,7 @@ def document_list(request):
         uploaded_by=request.user,
     )
 
+    index_document(document)
     return Response(
         serialize_document(
             document,
@@ -120,6 +121,18 @@ def update_document(
         )
 
     document.save()
+    searchable_fields = {
+        "title",
+        "description",
+    }
+
+    should_reindex = bool(
+        searchable_fields
+        & validated_data.keys()
+    )
+
+    if should_reindex:
+        index_document(document)
 
     file_was_replaced = (
         "file" in validated_data
