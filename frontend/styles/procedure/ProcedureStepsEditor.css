@@ -107,14 +107,15 @@
 }
 
 .empty-step-documents,
-.empty-steps {
-  margin: 0 0 10px;
-  padding: 12px;
-  color: #667085;
-  text-align: center;
-  background-color: #ffffff;
-  border: 1px dashed #d0d5dd;
-  border-radius: 8px;
+.edit-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 14px;
+  background-color: #f9fafb;
+  border: 1px solid #eaecf0;
+  border-radius: 10px;
 }
 
 .manage-step-documents-button,
@@ -137,13 +138,153 @@
   border-radius: 7px;
   cursor: pointer;
 }
+.step-document-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.recommended-documents {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
 
-@media (max-width: 600px) {
-  .edit-step {
-    grid-template-columns: 32px minmax(0, 1fr);
+.recommended-documents-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.recommended-document {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #dbe3ee;
+  border-radius: 8px;
+  background-color: #f8fafc;
+}
+
+.recommended-document-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.recommended-document-info small {
+  color: #64748b;
+}
+
+.remove-recommended-document {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  color: #64748b;
+  background: transparent;
+  cursor: pointer;
+}
+
+.remove-recommended-document:hover {
+  color: #dc2626;
+  background-color: #fee2e2;
+}
+.ai-recommend {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+
+  width: 40px;
+  height: 40px;
+  padding: 0 10px;
+
+  overflow: hidden;
+  white-space: nowrap;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+
+  color: #475569;
+  background-color: #ffffff;
+  cursor: pointer;
+
+  transition:
+    width 0.35s ease,
+    gap 0.35s ease,
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.ai-recommend svg {
+  flex-shrink: 0;
+}
+
+.ai-recommend-text {
+  display: inline-block;
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+
+  font-family: monospace;
+  white-space: nowrap;
+}
+
+.ai-recommend:hover,
+.ai-recommend:focus-visible {
+  width: 190px;
+  gap: 8px;
+
+  color: #4338ca;
+  background-color: #eef2ff;
+  border-color: #a5b4fc;
+}
+
+.ai-recommend:hover .ai-recommend-text,
+.ai-recommend:focus-visible .ai-recommend-text {
+  animation: type-ai-text 0.8s steps(17, end) forwards;
+}
+
+@keyframes type-ai-text {
+  from {
+    width: 0;
+    opacity: 1;
   }
 
-  .remove-step-button {
-    grid-column: 2;
+  to {
+    width: 17ch;
+    opacity: 1;
+  }
+}
+
+.ai-recommend:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+@media (max-width: 480px) {
+  .step-document-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .manage-step-documents-button,
+  .ai-recommend,
+  .ai-recommend:hover,
+  .ai-recommend:focus-visible {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ai-recommend .ai-recommend-text {
+    width: auto;
+    overflow: visible;
+    opacity: 1;
   }
 }
