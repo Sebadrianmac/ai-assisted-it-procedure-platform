@@ -42,7 +42,6 @@ const ProcedureStepsEditor = ({
       setRecommendationError("");
       setRecommendationStepIndex(index);
 
-      // Очищаем рекомендации только текущего шага.
       setRecommendedDocuments((current) => ({
         ...current,
         [index]: [],
@@ -55,17 +54,13 @@ const ProcedureStepsEditor = ({
 
       const recommendations = response.data.recommendations ?? [];
 
-      // Сохраняем рекомендации отдельно для текущего шага.
       setRecommendedDocuments((current) => ({
         ...current,
         [index]: recommendations,
       }));
 
-      // Рекомендованные документы сразу добавляются к документам шага.
       const recommendedIds = recommendations.map((document) => document.id);
-
       const currentIds = step.document_ids ?? [];
-
       onStepDocumentsChange(index, [
         ...new Set([...currentIds, ...recommendedIds]),
       ]);
