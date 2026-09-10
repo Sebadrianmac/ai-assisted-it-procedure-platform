@@ -215,6 +215,8 @@ def create_procedure(request):
         ),
         status=status.HTTP_201_CREATED,
     )
+
+
 @api_view([
     "GET",
     "PATCH",
@@ -691,6 +693,9 @@ def procedure_revision_create(
     procedure.save(update_fields=["updated_at"])
 
     return Response(
-        serialize_procedure_details(load_procedure(procedure.id), request),
+        serialize_procedure_details(
+            load_procedure(procedure.id),
+            request,
+        ),
         status=status.HTTP_201_CREATED,
     )

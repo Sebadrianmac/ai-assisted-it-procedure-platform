@@ -3,12 +3,12 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from ai.models import SourceType
 from procedures.serializers import serialize_document
 
 from .generation_service import generate_steps_from_input
-from .rag_service import generate_rag_answer
 from .search_service import semantic_search
+from .rag_service import generate_procedure_from_examples
 
 
 @api_view(["POST"])
@@ -35,13 +35,14 @@ def recommend_documents(request):
     results = semantic_search(
         query=text,
         limit=limit * 10,
+        source_type=SourceType.DOCUMENT,
     )
 
     recommendations = []
     seen_document_ids = set()
 
     for item in results:
-        document = item.document
+        document = item.source.document
 
         if document.id in seen_document_ids:
             continue
@@ -52,7 +53,6 @@ def recommend_documents(request):
             document,
             request,
         )
-
         document_data["distance"] = round(
             float(item.distance),
             4,
@@ -146,3 +146,118 @@ def generate_procedure_steps(request):
         )
 
     return Response(result, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def generate_procedure(request):
+    title = request.data.get("title", "")
+    description = request.data.get("description", "")
+    amountSteps = request.data.get("amountSteps")
+    instructions = request.data.get("instructions", "")
+    
+    if not isinstance(title, str):
+        return Response(
+            {"detail": "Title must be string."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    title =title.strip()
+    
+    if not isinstance(description, str):
+        return Response(
+            {"detail": "Description must be string."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    description = description.strip()
+    
+    if not isinstance(amountSteps, int):
+        return Response(
+            {"detail": "AmountSteps is not int."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+        
+    if not instructions or not isinstance(instructions, str):
+        return Response(
+            {"detail": "Instructions is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    instructions = instructions.strip()
+    
+    if (
+        amountSteps is not None
+        and (
+            not isinstance(amountSteps, int)
+            or isinstance(amountSteps, bool)
+        )
+    ):
+        return Response(
+            {
+                "detail": (
+                    "Amount steps must be an integer."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if (
+        amountSteps is not None
+        and not 3 <= amountSteps <= 10
+    ):
+        return Response(
+            {
+                "detail": (
+                    "Amount steps must be "
+                    "between 3 and 10."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+ 
+    try:
+        result = generate_procedure_from_examples(
+            title=title,
+            description=description,
+            amountSteps=amountSteps,
+            instructions=instructions,
+        )
+    except RequestException as error:
+        print("Local AI server error:", error)
+
+        return Response(
+            {
+                "detail": (
+                    "Local AI server is unavailable."
+                )
+            },
+            status=(
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        )
+    except ValueError as error:
+        return Response(
+            {
+                "detail": str(error),
+            },
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+    except Exception as error:
+        print(
+            "Failed to generate procedure:",
+            error,
+        )
+
+        return Response(
+            {
+                "detail": (
+                    "Failed to generate procedure."
+                )
+            },
+            status=(
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+            ),
+        )
+
+    return Response(
+        result,
+        status=status.HTTP_200_OK,
+    )

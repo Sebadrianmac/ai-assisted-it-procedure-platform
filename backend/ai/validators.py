@@ -61,3 +61,110 @@ def validate_procedure_steps(procedure_data):
     return {
         "steps": validated_steps,
     }
+    
+def validate_created_procedure(
+    procedure,
+    amountSteps=None,
+):
+    if not isinstance(procedure, dict):
+        raise ValueError(
+            "AI response must be a JSON object."
+        )
+
+    title = procedure.get("title")
+    if (
+        not isinstance(title, str)
+        or not title.strip()
+    ):
+        raise ValueError(
+            "AI response must contain a title string."
+        )
+
+    procedure_description = procedure.get(
+        "description"
+    )
+    if (
+        not isinstance(procedure_description, str)
+        or not procedure_description.strip()
+    ):
+        raise ValueError(
+            (
+                "AI response must contain "
+                "a description string."
+            )
+        )
+
+    steps = procedure.get("steps")
+    if not isinstance(steps, list):
+        raise ValueError(
+            "AI response must contain a steps list."
+        )
+
+    if not 3 <= len(steps) <= 10:
+        raise ValueError(
+            (
+                "AI response must contain "
+                "between 3 and 10 steps."
+            )
+        )
+
+    if (
+        amountSteps is not None
+        and len(steps) != amountSteps
+    ):
+        raise ValueError(
+            (
+                f"AI response must contain exactly "
+                f"{amountSteps} steps."
+            )
+        )
+
+    validated_steps = []
+    for expected_number, step in enumerate(
+        steps,
+        start=1,
+    ):
+        if not isinstance(step, dict):
+            raise ValueError(
+                f"Step {expected_number} must be an object."
+            )
+
+        step_number = step.get("step_number")
+        step_description = step.get("description")
+
+        if (
+            not isinstance(step_number, int)
+            or isinstance(step_number, bool)
+            or step_number != expected_number
+        ):
+            raise ValueError(
+                "AI returned invalid step numbering."
+            )
+
+        if (
+            not isinstance(step_description, str)
+            or not step_description.strip()
+        ):
+            raise ValueError(
+                (
+                    f"Step {expected_number} must "
+                    "contain a description."
+                )
+            )
+
+        validated_steps.append(
+            {
+                "step_number": expected_number,
+                "description": (
+                    step_description.strip()
+                ),
+            }
+        )
+
+    return {
+        "title": title.strip(),
+        "description": (
+            procedure_description.strip()
+        ),
+        "steps": validated_steps,
+    }

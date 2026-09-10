@@ -20,6 +20,9 @@ from django.db import transaction
 from ..serializers import (
     serialize_version,
 )
+from ai.embedding_service import (
+    index_procedure_version,
+)
 
 @api_view(["GET"])
 @permission_classes([
@@ -203,7 +206,14 @@ def procedure_review_detail(request, version_id):
             version.status = StatusChoices.COMPLETED
             version.is_current = True
             version.save()
-
+            try:
+                index_procedure_version(version)
+            except Exception as error:
+                print(
+                    "Failed to index approved "
+                    f"procedure version {version.id}:",
+                    error,
+                )
         return Response(
             {
                 "message": (

@@ -1,80 +1,75 @@
-from ai.search_service import semantic_search
+#RAG service - tasks which requires a search through documents
+from ai.search_service import search_similar_procedures
 from ai.services import generate_ai_text
+from ai.prompts import build_procedure_from_examples_prompt
+from ai.validators import validate_created_procedure
+import json;
 
-
-def generate_rag_answer(question, limit=5):
-    question = question.strip()
-
-    if not question:
-        raise ValueError("Question cannot be empty.")
-
-    search_results = list(
-        semantic_search(
-            query=question,
-            limit=limit,
-        )
-    )
-
-    if not search_results:
-        raise ValueError(
-            "No relevant information was found."
-        )
-
+PROCEDURE_EXAMPLE_LIMIT = 3
+def build_procedure_examples_context(
+    search_results,
+):
     context_parts = []
-    sources = []
+    seen_version_ids = set()
 
-    for source_number, item in enumerate(
-        search_results,
-        start=1,
-    ):
+    for item in search_results:
+        version = item.source.procedure_version
+
+        if version.id in seen_version_ids:
+            continue
+
+        seen_version_ids.add(version.id)
+        seen_version_ids.add(version.id)
+
+        example_number = len(context_parts) + 1
+
         context_parts.append(
             (
-                f"[Source {source_number}]\n"
-                f"Document: {item.document.title}\n"
-                f"Content:\n{item.content}"
+                f"[Example Procedure {example_number}]\n"
+                f"{item.content}"
             )
         )
 
-        sources.append(
-            {
-                "document_id": item.document.id,
-                "title": item.document.title,
-                "chunk_number": item.chunk_number,
-                "distance": round(
-                    float(item.distance),
-                    4,
-                ),
-                "similarity": round(
-                    1 - float(item.distance),
-                    4,
-                ),
-            }
+    return "\n\n".join(context_parts)
+
+def generate_procedure_from_examples(
+    title,
+    description,
+    instructions,
+    amountSteps=None,
+):
+    procedures = search_similar_procedures(
+        title=title,
+        description=description,
+        instructions=instructions,
+        limit=PROCEDURE_EXAMPLE_LIMIT
+    )
+    
+    context = build_procedure_examples_context(procedures)
+    prompt = build_procedure_from_examples_prompt(
+        title=title,
+        description=description,
+        instructions=instructions,
+        amountSteps=amountSteps,
+        context=context
         )
-
-    context = "\n\n".join(context_parts)
-
-    prompt = f"""
-Use the provided company documents to answer the request.
-
-Rules:
-- Use only information supported by the provided sources.
-- Do not invent policies, requirements, or facts.
-- If the sources do not contain enough information, clearly say so.
-- Create clear and practical IT procedure steps.
-- Recommend a responsible role for every step.
-- Reference supporting sources as [Source 1], [Source 2], and so on.
-- Answer in English.
-
-User request:
-{question}
-
-Sources:
-{context}
-""".strip()
-
-    answer = generate_ai_text(prompt)
-
+    raw_answer = generate_ai_text(
+        prompt=prompt,
+        response_format={
+            "type": "json_object",
+        }
+    )
+    try:
+        procedure_data = json.loads(raw_answer)
+    except json.JSONDecodeError as error:
+        raise ValueError(
+            "Ai returned invalid JSON"
+        ) from error
+    
+    validated_procedure = validate_created_procedure(
+        procedure=procedure_data,
+        amountSteps=amountSteps,
+    )   
     return {
-        "answer": answer,
-        "sources": sources,
+        "procedure":validated_procedure
     }
