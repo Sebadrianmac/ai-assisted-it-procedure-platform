@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import {
   Link,
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import api from "../api/api";
 import ProcedureReviewComment from "../procedure/ProcedureReviewComment";
@@ -23,8 +24,9 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const isCreateMode = procedureId === undefined;
   const isNewRevision =
     !isCreateMode && searchParams.get("mode") === "new-revision";
-
+  const location = useLocation();
   const [procedure, setProcedure] = useState(null);
+  const generatedProcedure = location.state?.generatedProcedure;
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -59,9 +61,19 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
     if (isCreateMode) {
       setProcedure(null);
-      setTitle("");
-      setDescription("");
-      setSteps([]);
+
+      setTitle(generatedProcedure?.title ?? "");
+
+      setDescription(generatedProcedure?.description ?? "");
+
+      setSteps(
+        generatedProcedure?.steps?.map((step) => ({
+          ...step,
+          id: crypto.randomUUID(),
+          document_ids: [],
+        })) ?? [],
+      );
+
       setStatus("in_progress");
       setStatusLabel("Draft");
       setCurrentVersion(null);
@@ -504,7 +516,6 @@ const EditProcedurePage = ({ permissions = [] }) => {
                 placeholder="For example: Focus on IT tasks, account creation, workstation setup and access permissions."
                 maxLength={1300}
                 onKeyDown={handleInstructionsKeyDown}
-
                 disabled={isFormDisabled || isGenerating}
               />
 

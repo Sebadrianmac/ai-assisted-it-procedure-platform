@@ -155,14 +155,14 @@ def generate_procedure(request):
     description = request.data.get("description", "")
     amountSteps = request.data.get("amountSteps")
     instructions = request.data.get("instructions", "")
-    
+
     if not isinstance(title, str):
         return Response(
             {"detail": "Title must be string."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    title =title.strip()
-    
+    title = title.strip()
+
     if not isinstance(description, str):
         return Response(
             {"detail": "Description must be string."},
@@ -170,19 +170,13 @@ def generate_procedure(request):
         )
     description = description.strip()
     
-    if not isinstance(amountSteps, int):
-        return Response(
-            {"detail": "AmountSteps is not int."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-        
     if not instructions or not isinstance(instructions, str):
         return Response(
             {"detail": "Instructions is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
     instructions = instructions.strip()
-    
+
     if (
         amountSteps is not None
         and (
@@ -212,7 +206,7 @@ def generate_procedure(request):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
- 
+
     try:
         result = generate_procedure_from_examples(
             title=title,

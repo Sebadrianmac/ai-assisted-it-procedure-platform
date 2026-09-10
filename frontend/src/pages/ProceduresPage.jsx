@@ -10,6 +10,8 @@ import "../../styles/ProcedureTable.css";
 import api from "../api/api";
 import ProcedureItem from "../procedure/ProcedureItem";
 import ProcedureSearchTool from "../procedure/ProcedureSearchTool";
+import AiProcedureHelper from "./AIProcedureHelper";
+import "../../styles/AiHelper.css";
 
 const ProceduresPage = ({ permissions = [] }) => {
   const navigate = useNavigate();
@@ -192,6 +194,7 @@ const ProceduresPage = ({ permissions = [] }) => {
   }
 
   return (
+    <div className="procedures-layout">
     <section className="procedures-section">
       <div className="procedures-toolbar">
         <div className="procedures-header">
@@ -302,6 +305,10 @@ const ProceduresPage = ({ permissions = [] }) => {
         </nav>
       </footer>
     </section>
+    <aside className="ai-procedure-sidebar">
+            <AiProcedureHelper />
+    </aside>
+    </div>
   );
 };
 
