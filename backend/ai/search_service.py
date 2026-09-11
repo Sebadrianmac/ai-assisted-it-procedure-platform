@@ -73,3 +73,48 @@ def search_similar_procedures(
         source_type=SourceType.PROCEDURE
     )
     
+def search_relevant_documents(
+    text,
+    limit=3,
+    minimum_similarity=0.3,
+):
+    results = semantic_search(
+        query=text,
+        limit=limit * 10,
+        source_type=SourceType.DOCUMENT,
+    )
+
+    recommendations = []
+    seen_document_ids = set()
+
+    for item in results:
+        document = item.source.document
+        similarity = 1 - float(item.distance)
+
+        if document.id in seen_document_ids:
+            continue
+
+        if similarity < minimum_similarity:
+            continue
+
+        seen_document_ids.add(document.id)
+
+        recommendations.append(
+            {
+                "document": document,
+                "similarity": round(
+                    similarity,
+                    4,
+                ),
+                "distance": round(
+                    float(item.distance),
+                    4,
+                ),
+                "matched_content": item.content,
+            }
+        )
+
+        if len(recommendations) >= limit:
+            break
+
+    return recommendations

@@ -70,7 +70,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
         generatedProcedure?.steps?.map((step) => ({
           ...step,
           id: crypto.randomUUID(),
-          document_ids: [],
+          document_ids: step.document_ids ?? [],
         })) ?? [],
       );
 

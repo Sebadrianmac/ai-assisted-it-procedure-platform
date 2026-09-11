@@ -1,5 +1,5 @@
 #RAG service - tasks which requires a search through documents
-from ai.search_service import search_similar_procedures
+from ai.search_service import search_similar_procedures, search_relevant_documents
 from ai.services import generate_ai_text
 from ai.prompts import build_procedure_from_examples_prompt
 from ai.validators import validate_created_procedure
@@ -70,6 +70,29 @@ def generate_procedure_from_examples(
         procedure=procedure_data,
         amountSteps=amountSteps,
     )   
+    for step in validated_procedure["steps"]:
+        recommendations = search_relevant_documents(
+            text=step["description"],
+            limit=3,
+        )
+
+        step["document_ids"] = [
+            recommendation["document"].id
+            for recommendation in recommendations
+        ]
+
+        step["recommended_documents"] = [
+            {
+                "id": recommendation["document"].id,
+                "title": (
+                    recommendation["document"].title
+                ),
+                "similarity": (
+                    recommendation["similarity"]
+                ),
+            }
+            for recommendation in recommendations
+        ]
     return {
         "procedure":validated_procedure
     }
