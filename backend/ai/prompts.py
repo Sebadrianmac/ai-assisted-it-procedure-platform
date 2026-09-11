@@ -116,14 +116,36 @@ def build_procedure_from_examples_prompt(
     ).strip()
     
 def build_role_recommendation_prompt(
-    step_description,
+    steps_text,
     available_roles,
 ):
     return f"""
-    Recommend one responsible role...
-    Step:
-    {step_description}
+    TASK:
+    Recommend one responsible role for each procedure step.
+    
+    OUTPUT FORMAT:
+        Return one JSON object with this structure:
+        {{
+            "recommendations": [
+            {{
+                "step_number": 1,
+                "role_id": 1,
+                "reason": "Short explanation"
+            }}
+            ]
+        }}
+    RULES:
+    - Return valid JSON only.
+    - Do not use Markdown.
+    - Return exactly one recommendation for each provided step.
+    - Use only the provided step numbers.
+    - Use only the provided role IDs
+    - For each step choose one role
+    - Do not invent new roles; 
+    - Answer in English
+    PROCEDURE STEPS:
+    {steps_text}
 
-    Available roles:
+    AVAILABLE ROLES:
     {available_roles}
     """.strip()

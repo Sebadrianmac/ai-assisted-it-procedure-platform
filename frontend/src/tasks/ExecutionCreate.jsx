@@ -6,6 +6,7 @@ import ProcedureSelector from "./ProcedureSelector";
 import TaskProcedureSteps from "./TaskProcedureSteps";
 import { Plus } from "lucide-react";
 import "../../styles/tasks/TaskProcedureList.css";
+
 const ExecutionCreate = () => {
   const navigation = useNavigate();
   const [procedures, setProcedures] = useState([]);
@@ -175,11 +176,8 @@ const ExecutionCreate = () => {
 
       await api.post("/api/tasks/", {
         procedure_version_id: selectedProcedure.current_version.id,
-
         context: context.trim(),
-
         deadline: deadline ? new Date(deadline).toISOString() : null,
-
         assignments: taskAssignments,
       });
 
@@ -222,6 +220,16 @@ const ExecutionCreate = () => {
       [stepId]: {
         ...previous[stepId],
         [field]: value,
+      },
+    }));
+  };
+  const applyAiRoleRecommendation = (stepId, roleId) => {
+    setAssignments((previous) => ({
+      ...previous,
+      [stepId]: {
+        type: "role",
+        assignedRoleId: String(roleId),
+        assignedUserId: "",
       },
     }));
   };
@@ -307,6 +315,7 @@ const ExecutionCreate = () => {
           assignedStepsCount={assignedStepsCount}
           onTypeChange={changeAssignmentType}
           onAssigneeChange={changeAssignee}
+          onAiRoleRecommendation={applyAiRoleRecommendation}
         />
         {error && <p className="execution-create-error">{error}</p>}
 

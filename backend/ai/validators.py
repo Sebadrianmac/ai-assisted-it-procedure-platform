@@ -168,3 +168,105 @@ def validate_created_procedure(
         ),
         "steps": validated_steps,
     }
+def validate_role_recommendations(
+    response_data,
+    allowed_step_numbers,
+    allowed_role_ids,
+):
+    if not isinstance(response_data, dict):
+        raise ValueError(
+            "AI response must be a JSON object."
+        )
+
+    recommendations = response_data.get(
+        "recommendations"
+    )
+
+    if not isinstance(recommendations, list):
+        raise ValueError(
+            "AI response must contain "
+            "a recommendations list."
+        )
+
+    if (
+        len(recommendations)
+        != len(allowed_step_numbers)
+    ):
+        raise ValueError(
+            "AI must return one recommendation "
+            "for every provided step."
+        )
+
+    validated_recommendations = []
+    received_step_numbers = set()
+
+    for recommendation in recommendations:
+        if not isinstance(recommendation, dict):
+            raise ValueError(
+                "Every recommendation must be an object."
+            )
+
+        step_number = recommendation.get(
+            "step_number"
+        )
+        role_id = recommendation.get("role_id")
+        reason = recommendation.get("reason")
+
+        if (
+            not isinstance(step_number, int)
+            or isinstance(step_number, bool)
+            or step_number not in allowed_step_numbers
+        ):
+            raise ValueError(
+                "AI returned an invalid step number."
+            )
+
+        if step_number in received_step_numbers:
+            raise ValueError(
+                "AI returned multiple recommendations "
+                f"for step {step_number}."
+            )
+
+        if (
+            not isinstance(role_id, int)
+            or isinstance(role_id, bool)
+            or role_id not in allowed_role_ids
+        ):
+            raise ValueError(
+                f"AI returned an invalid role ID "
+                f"for step {step_number}."
+            )
+
+        if (
+            not isinstance(reason, str)
+            or not reason.strip()
+        ):
+            raise ValueError(
+                f"Recommendation for step "
+                f"{step_number} must contain a reason."
+            )
+
+        received_step_numbers.add(
+            step_number
+        )
+
+        validated_recommendations.append(
+            {
+                "step_number": step_number,
+                "role_id": role_id,
+                "reason": reason.strip(),
+            }
+        )
+
+    missing_step_numbers = (
+        allowed_step_numbers
+        - received_step_numbers
+    )
+
+    if missing_step_numbers:
+        raise ValueError(
+            "AI did not return recommendations "
+            "for every provided step."
+        )
+
+    return validated_recommendations

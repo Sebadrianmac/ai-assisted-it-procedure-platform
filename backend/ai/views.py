@@ -6,7 +6,7 @@ from rest_framework.response import Response
 from ai.models import SourceType
 from procedures.serializers import serialize_document
 
-from .generation_service import generate_steps_from_input
+from .generation_service import generate_steps_from_input, recommend_roles_for_steps
 from .search_service import semantic_search
 from .rag_service import generate_procedure_from_examples
 
@@ -253,5 +253,75 @@ def generate_procedure(request):
 
     return Response(
         result,
+        status=status.HTTP_200_OK,
+    )
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def recommend_step_roles(request):
+    steps = request.data.get("steps")
+
+    if not isinstance(steps, list) or not steps:
+        return Response(
+            {
+                "detail": (
+                    "Steps must be a non-empty list."
+                ),
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        recommendations = (
+            recommend_roles_for_steps(
+                steps=steps,
+            )
+        )
+
+    except RequestException as error:
+        print(
+            "Local AI server error:",
+            error,
+        )
+
+        return Response(
+            {
+                "detail": (
+                    "Local AI server is unavailable."
+                ),
+            },
+            status=(
+                status.HTTP_503_SERVICE_UNAVAILABLE
+            ),
+        )
+
+    except ValueError as error:
+        return Response(
+            {
+                "detail": str(error),
+            },
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    except Exception as error:
+        print(
+            "Failed to recommend roles:",
+            error,
+        )
+
+        return Response(
+            {
+                "detail": (
+                    "Failed to recommend roles."
+                ),
+            },
+            status=(
+                status.HTTP_500_INTERNAL_SERVER_ERROR
+            ),
+        )
+
+    return Response(
+        {
+            "recommendations": recommendations,
+        },
         status=status.HTTP_200_OK,
     )

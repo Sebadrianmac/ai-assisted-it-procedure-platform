@@ -88,7 +88,7 @@ body {
 
 .app-content {
   min-width: 0;
-  padding: 24px;
+  padding: 24px 0;
   overflow: auto;
 }
 
@@ -126,8 +126,6 @@ body {
   margin-left: 6px;
   font-size: 17px;
 }
-
-/* Tablet and mobile */
 
 @media (max-width: 800px) {
   .app-layout {
