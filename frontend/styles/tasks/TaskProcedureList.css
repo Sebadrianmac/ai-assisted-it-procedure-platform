@@ -181,7 +181,14 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
-
+.role-recommendation-error {
+  margin: 12px 24px 0;
+  padding: 10px 12px;
+  color: #b42318;
+  background-color: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+}
 @media (max-width: 950px) {
   .execution-fields {
     grid-template-columns: 1fr 1fr;
