@@ -1,12 +1,16 @@
 import AssignmentSelect from "./AssigmentSelect";
-
 const StepAssignmentItem = ({
   step,
   assignment,
   roles,
   users,
+  aiRecommendation,
+  isRecommending,
+  isRecommendationDisabled,
   onTypeChange,
   onAssigneeChange,
+  onRecommendRole,
+
 }) => {
   const assignmentType = assignment?.type;
 
@@ -16,26 +20,18 @@ const StepAssignmentItem = ({
       : assignment?.assignedUserId;
 
   const assignmentField =
-    assignmentType === "role"
-      ? "assignedRoleId"
-      : "assignedUserId";
+    assignmentType === "role" ? "assignedRoleId" : "assignedUserId";
 
   return (
     <div className="step-assign-item">
-      <span className="step-number">
-        {step.step_number}
-      </span>
+      <span className="step-number">{step.step_number}</span>
 
-      <p className="step-description">
-        {step.description}
-      </p>
-
+      <p className="step-description">{step.description}</p>
+      
       <div className="assignment-type-toggle">
         <button
           type="button"
-          className={
-            assignmentType === "role" ? "active" : ""
-          }
+          className={assignmentType === "role" ? "active" : ""}
           onClick={() => onTypeChange(step.id, "role")}
         >
           Role
@@ -43,14 +39,31 @@ const StepAssignmentItem = ({
 
         <button
           type="button"
-          className={
-            assignmentType === "user" ? "active" : ""
-          }
+          className={assignmentType === "user" ? "active" : ""}
           onClick={() => onTypeChange(step.id, "user")}
         >
           User
         </button>
       </div>
+
+      <button
+        type="button"
+        className="recommend-role-button"
+        onClick={onRecommendRole}
+        disabled={isRecommendationDisabled}
+      >
+        {isRecommending ? "Recommending..." : "AI Recommend"}
+      </button>
+
+      {aiRecommendation && (
+        <div className="ai-role-recommendation">
+          <span className="ai-recommendation-label">AI recommended</span>
+
+          <strong>{aiRecommendation.role_name}</strong>
+
+          <p>{aiRecommendation.reason}</p>
+        </div>
+      )}
 
       {assignmentType && (
         <AssignmentSelect
@@ -60,11 +73,7 @@ const StepAssignmentItem = ({
           users={users}
           selectedId={selectedId}
           onSelect={(value) =>
-            onAssigneeChange(
-              step.id,
-              assignmentField,
-              value,
-            )
+            onAssigneeChange(step.id, assignmentField, value)
           }
         />
       )}

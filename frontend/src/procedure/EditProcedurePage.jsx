@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import {
   Link,
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
 } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 
 import api from "../api/api";
 import ProcedureReviewComment from "../procedure/ProcedureReviewComment";
@@ -13,6 +15,8 @@ import ProcedureStepsEditor from "../procedure/edit/ProcedureStepsEditor";
 import ProcedureVersionInformation from "../procedure/edit/ProcedureVersionInformation";
 import SubmitVersionDialog from "../procedure/edit/SubmitVersionDialog";
 import "../../styles/procedure/ProcedureEditorPage.css";
+import "../../styles/AiGenerating.css";
+
 const EditProcedurePage = ({ permissions = [] }) => {
   const navigate = useNavigate();
   const { procedureId } = useParams();
@@ -20,7 +24,10 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const isCreateMode = procedureId === undefined;
   const isNewRevision =
     !isCreateMode && searchParams.get("mode") === "new-revision";
+  const location = useLocation();
   const [procedure, setProcedure] = useState(null);
+  const generatedProcedure = location.state?.generatedProcedure;
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState([]);
@@ -33,6 +40,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const [activeVersion, setActiveVersion] = useState(null);
   const [isFirstVersion, setIsFirstVersion] = useState(false);
   const [changeType, setChangeType] = useState("minor");
+
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -44,14 +52,28 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const isWaitingForApproval = status === "created";
   const isFormDisabled = !canEdit || isSaving || isWaitingForApproval;
 
+  const [instructions, setInstructions] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiGeneratingError, setAiGeneratingError] = useState("");
+
   useEffect(() => {
     const controller = new AbortController();
 
     if (isCreateMode) {
       setProcedure(null);
-      setTitle("");
-      setDescription("");
-      setSteps([]);
+
+      setTitle(generatedProcedure?.title ?? "");
+
+      setDescription(generatedProcedure?.description ?? "");
+
+      setSteps(
+        generatedProcedure?.steps?.map((step) => ({
+          ...step,
+          id: crypto.randomUUID(),
+          document_ids: step.document_ids ?? [],
+        })) ?? [],
+      );
+
       setStatus("in_progress");
       setStatusLabel("Draft");
       setCurrentVersion(null);
@@ -98,12 +120,10 @@ const EditProcedurePage = ({ permissions = [] }) => {
         }
 
         setSteps(
-          editableVersion?.steps?.map((step) => ({
-            id: step.id,
-            step_number: step.step_number,
-            description: step.description,
-            document_ids: (step.documents ?? []).map((document) => document.id),
-          })) ?? [],
+          editableVersion.steps.map((step) => ({
+            ...step,
+            document_ids: step.documents?.map((document) => document.id) ?? [],
+          })),
         );
 
         setIsFirstVersion(loadedCurrentVersion === null);
@@ -346,7 +366,6 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
   const handleSaveDraft = async (event) => {
     event.preventDefault();
-
     await saveProcedure("save_draft");
   };
 
@@ -365,7 +384,71 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const submitForApproval = async () => {
     await saveProcedure("submit_for_approval", changeType);
   };
+  const handleGenerateSteps = async () => {
+    if (!title.trim()) {
+      setAiGeneratingError("Enter a title before generating steps.");
 
+      return;
+    }
+    if (!description.trim()) {
+      setAiGeneratingError("Enter a description before generating steps.");
+      return;
+    }
+    if (
+      steps.length > 0 &&
+      !window.confirm(
+        "Generating new steps will replace the existing steps. Continue?",
+      )
+    ) {
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      setAiGeneratingError("");
+
+      const response = await api.post("/api/ai/generate-procedure-steps/", {
+        title: title.trim(),
+        description: description.trim(),
+        instructions: instructions.trim(),
+      });
+      const procedureSteps = response.data.procedure.steps ?? [];
+      const preparedSteps = procedureSteps.map((step) => ({
+        ...step,
+        document_ids: [],
+      }));
+
+      setSteps(preparedSteps);
+    } catch (error) {
+      console.error("Failed to generate procedure steps:", error);
+
+      setAiGeneratingError(
+        error.response?.data?.detail || "Failed to generate procedure steps.",
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  const handleInstructionsKeyDown = (event) => {
+    if (event.nativeEvent.isComposing) {
+      return;
+    }
+    if (event.key !== "Enter" || event.shiftKey) {
+      return;
+    }
+    event.preventDefault();
+
+    if (
+      isFormDisabled ||
+      isGenerating ||
+      !title.trim() ||
+      !description.trim()
+    ) {
+      return;
+    }
+
+    handleGenerateSteps();
+  };
   if (isLoading) {
     return <p>Loading procedure...</p>;
   }
@@ -408,51 +491,88 @@ const EditProcedurePage = ({ permissions = [] }) => {
         )}
 
         <div
-  className={`edit-layout ${
-    isCreateMode ? "edit-layout-single" : ""
-  }`}
->
-  <div className="edit-main-content">
-    <ProcedureEditFields
-      title={title}
-      description={description}
-      disabled={isFormDisabled}
-      onTitleChange={setTitle}
-      onDescriptionChange={setDescription}
-    />
+          className={`edit-layout ${isCreateMode ? "edit-layout-single" : ""}`}
+        >
+          <div className="edit-main-content">
+            <ProcedureEditFields
+              title={title}
+              description={description}
+              disabled={isFormDisabled}
+              onTitleChange={setTitle}
+              onDescriptionChange={setDescription}
+            />
 
-    <ProcedureStepsEditor
-      steps={steps}
-      documents={documents}
-      isLoadingDocuments={isLoadingDocuments}
-      documentsError={documentsError}
-      disabled={isFormDisabled}
-      onStepChange={changeStepDescription}
-      onStepDocumentsChange={changeStepDocuments}
-      onStepAdd={addStep}
-      onStepRemove={removeStep}
-    />
-  </div>
+            <div className="ai-steps-generator">
+              <label htmlFor="ai-instructions">
+                Generate procedure steps with Ai
+              </label>
 
-  {!isCreateMode && (
-    <aside className="edit-sidebar">
-      <ProcedureVersionInformation
-        procedure={procedure}
-        currentVersion={currentVersion}
-        activeVersion={activeVersion}
-        statusLabel={statusLabel}
-        isNewRevision={isNewRevision}
-      />
+              <textarea
+                id="ai-instructions"
+                value={instructions}
+                onChange={(event) => {
+                  setInstructions(event.target.value);
+                }}
+                placeholder="For example: Focus on IT tasks, account creation, workstation setup and access permissions."
+                maxLength={1300}
+                onKeyDown={handleInstructionsKeyDown}
+                disabled={isFormDisabled || isGenerating}
+              />
 
-      {procedure?.active_version?.review_comment && (
-        <ProcedureReviewComment
-          version={procedure.active_version}
-        />
-      )}
-    </aside>
-  )}
-</div>
-      
+              <button
+                type="button"
+                className="generate-steps-button"
+                onClick={handleGenerateSteps}
+                disabled={
+                  isFormDisabled ||
+                  isGenerating ||
+                  !title.trim() ||
+                  !description.trim()
+                }
+              >
+                {isGenerating ? (
+                  "Generating steps... "
+                ) : (
+                  <span>
+                    Generate steps with <Sparkles size={18} />
+                  </span>
+                )}
+              </button>
+
+              {aiGeneratingError && (
+                <p className="edit-form-error">{aiGeneratingError}</p>
+              )}
+            </div>
+            <ProcedureStepsEditor
+              steps={steps}
+              documents={documents}
+              isLoadingDocuments={isLoadingDocuments}
+              documentsError={documentsError}
+              disabled={isFormDisabled}
+              onStepChange={changeStepDescription}
+              onStepDocumentsChange={changeStepDocuments}
+              onStepAdd={addStep}
+              onStepRemove={removeStep}
+            />
+          </div>
+
+          {!isCreateMode && (
+            <aside className="edit-sidebar">
+              <ProcedureVersionInformation
+                procedure={procedure}
+                currentVersion={currentVersion}
+                activeVersion={activeVersion}
+                statusLabel={statusLabel}
+                isNewRevision={isNewRevision}
+              />
+
+              {procedure?.active_version?.review_comment && (
+                <ProcedureReviewComment version={procedure.active_version} />
+              )}
+            </aside>
+          )}
+        </div>
+
         {error && <p className="edit-form-error">{error}</p>}
 
         {successMessage && (
@@ -478,7 +598,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
               <button
                 type="submit"
                 className="edit-save-button"
-                disabled={isSaving}
+                disabled={isSaving || isGenerating}
               >
                 {isSaving ? "Saving..." : "Save draft"}
               </button>
@@ -487,7 +607,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
                 type="button"
                 className="edit-submit-button"
                 onClick={openSubmitDialog}
-                disabled={isSaving}
+                disabled={isSaving || isGenerating}
               >
                 Submit for approval
               </button>
@@ -506,7 +626,6 @@ const EditProcedurePage = ({ permissions = [] }) => {
           onSubmit={submitForApproval}
         />
       )}
-
     </section>
   );
 };

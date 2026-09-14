@@ -47,22 +47,87 @@
 
 .step-assign-item {
   position: relative;
-
   display: grid;
   grid-template-columns:
     48px
     minmax(220px, 1fr)
-    230px
-    minmax(240px, 360px);
-  gap: 24px;
+    220px
+    minmax(240px, 340px)
+    auto;
+  gap: 14px 18px;
   align-items: center;
-
   min-height: 80px;
-  padding: 14px 16px;
-
+  padding: 16px;
   border-bottom: 1px solid #e2e8f0;
 }
+.recommend-role-button {
+  grid-column: 5;
+  grid-row: 1;
 
+  min-height: 42px;
+  padding: 9px 13px;
+  color: #6d28d9;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: linear-gradient(
+    135deg,
+    #f5f3ff,
+    #eff6ff,
+    #fdf2f8
+  );
+  border: 1px solid #c4b5fd;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.recommend-role-button:hover {
+  color: #4338ca;
+  border-color: #8b5cf6;
+  box-shadow: 0 4px 12px rgb(124 58 237 / 15%);
+}
+.ai-role-recommendation {
+  grid-column: 2 / 5;
+  grid-row: 2;
+
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #475569;
+  font-size: 13px;
+  background: linear-gradient(
+    135deg,
+    #f5f3ff,
+    #eff6ff,
+    #fdf2f8
+  );
+  border: 1px solid #ddd6fe;
+  border-radius: 8px;
+}
+
+.ai-recommendation-label {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  color: #6d28d9;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background-color: #ede9fe;
+  border-radius: 999px;
+}
+
+.ai-role-recommendation strong {
+  flex-shrink: 0;
+  color: #312e81;
+}
+
+.ai-role-recommendation p {
+  min-width: 0;
+  margin: 0;
+  color: #64748b;
+}
 .step-assign-item:focus-within {
   z-index: 20;
 }
@@ -72,36 +137,46 @@
 }
 
 .step-number {
+  grid-column: 1;
+  grid-row: 1;
+
   display: flex;
   align-items: center;
   justify-content: center;
-
   width: 40px;
   height: 40px;
-
   color: #334155;
   font-weight: 700;
-
   background-color: #f8fafc;
   border: 1px solid #dfe3ec;
   border-radius: 7px;
 }
 
 .step-description {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
   margin: 0;
   color: #172033;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
-
 .assignment-type-toggle {
+  grid-column: 3;
+  grid-row: 1;
+
   display: grid;
   grid-template-columns: 1fr 1fr;
-
   overflow: hidden;
   border: 1px solid #dfe3ec;
   border-radius: 8px;
 }
 
+.assignment-select {
+  grid-column: 4;
+  grid-row: 1;
+  min-width: 0;
+}
 .assignment-type-toggle button {
   min-height: 44px;
   padding: 10px 20px;
@@ -127,14 +202,40 @@
   background-color: #2563eb;
 }
 
-@media (max-width: 1050px) {
+@media (max-width: 1100px) {
   .step-assign-item {
-    grid-template-columns: 48px 1fr;
+    grid-template-columns: 48px minmax(0, 1fr);
   }
 
-  .assignment-type-toggle,
+  .step-number {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .step-description {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .assignment-type-toggle {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
   .assignment-select {
     grid-column: 2;
+    grid-row: 3;
+  }
+
+  .recommend-role-button {
+    grid-column: 2;
+    grid-row: 4;
+    justify-self: start;
+  }
+
+  .ai-role-recommendation {
+    grid-column: 2;
+    grid-row: 5;
   }
 }
 
@@ -149,12 +250,38 @@
   }
 
   .step-number,
+  .step-description,
   .assignment-type-toggle,
-  .assignment-select {
+  .assignment-select,
+  .recommend-role-button,
+  .ai-role-recommendation {
     grid-column: 1;
   }
 
+  .step-number {
+    grid-row: 1;
+  }
+
+  .step-description {
+    grid-row: 2;
+  }
+
+  .assignment-type-toggle {
+    grid-row: 3;
+  }
+
   .assignment-select {
-    min-width: 0;
+    grid-row: 4;
+  }
+
+  .recommend-role-button {
+    grid-row: 5;
+    width: 100%;
+  }
+
+  .ai-role-recommendation {
+    grid-row: 6;
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

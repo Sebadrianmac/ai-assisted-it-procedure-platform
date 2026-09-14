@@ -1,12 +1,11 @@
 .review-section {
   width: 100%;
-  padding: 30px;
+  padding: 22px;
   box-sizing: border-box;
   color: #111827;
   background-color: #f8fafc;
 }
 
-/* Page header */
 
 .review-page-header {
   display: flex;
