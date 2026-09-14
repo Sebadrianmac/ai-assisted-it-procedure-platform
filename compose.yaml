@@ -1,0 +1,82 @@
+services:
+  db:
+    image: pgvector/pgvector:pg18-trixie
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./docker/postgres/01-enable-vector.sql:/docker-entrypoint-initdb.d/01-enable-vector.sql:ro
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER} -d ${DB_NAME}",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .env.docker
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - django_media:/app/media
+      - huggingface_cache:/root/.cache/huggingface
+    depends_on:
+      db:
+        condition: service_healthy
+      ai:
+        condition: service_started
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - backend
+  ai:
+    image: ghcr.io/ggml-org/llama.cpp:server-cuda
+    gpus: all
+    command:
+      - -m
+      - /models/Qwen3-4B-Q4_K_M.gguf
+      - --alias
+      - Qwen3-4B
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - --n-gpu-layers
+      - "99"
+      - --ctx-size
+      - "8192"
+      - --parallel
+      - "1"
+    ports:
+      - "8080:8080"
+    volumes:
+      - "${AI_MODEL_PATH}:/models/Qwen3-4B-Q4_K_M.gguf:ro"
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  django_media:
+  huggingface_cache:
+  frontend_node_modules:
