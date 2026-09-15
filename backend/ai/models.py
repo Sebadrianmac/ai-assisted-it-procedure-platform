@@ -2,6 +2,7 @@ from django.db import models
 from pgvector.django import VectorField
 from procedures.models import Document, ProcedureVersion
 from django.db.models import Q
+from users.models import User
 
 class SourceType(models.TextChoices):
     DOCUMENT = "document", "Document"
@@ -85,3 +86,56 @@ class KnowledgeBaseItem(models.Model):
                 name="unique_chunk_per_source",
             ),
         ]
+class AIRecommendation(models.Model):
+    class RecommendationType(models.TextChoices):
+        PROCEDURE = "procedure", "Procedure"
+        PROCEDURE_STEP = "procedure_step", "Procedure step"
+        STEP_ROLE = "step_role", "Step role"
+        DOCUMENTS = "documents", "Documents"
+    class FeedbackStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACCEPTED = "accepted", "Accepted"
+        MODIFIED = "modified", "Modified"
+        REJECTED = "rejected", "Rejected"
+        ABANDONED = "abandoned", "Abandoned"
+    recommendation_type = models.CharField(
+        max_length=20,
+        choices=RecommendationType.choices
+    )
+    procedure_version = models.ForeignKey(
+        ProcedureVersion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_recommendations",
+    )
+    input_data = models.JSONField()
+    
+    ai_output = models.JSONField()
+    
+    final_output = models.JSONField(
+        null=True,
+        blank=True
+    )
+    
+    feedback_status = models.CharField(
+        max_length=20,
+        choices=FeedbackStatus.choices,
+        default=FeedbackStatus.PENDING
+    )
+    feedback_reason = models.TextField(
+        blank=True,
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="ai_recommendations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    evaluated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    updated_at =models.DateTimeField(auto_now=True)

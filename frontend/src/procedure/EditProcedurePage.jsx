@@ -26,8 +26,10 @@ const EditProcedurePage = ({ permissions = [] }) => {
     !isCreateMode && searchParams.get("mode") === "new-revision";
   const location = useLocation();
   const [procedure, setProcedure] = useState(null);
-  const generatedProcedure = location.state?.generatedProcedure;
 
+  const generatedProcedure = location.state?.generatedProcedure;
+  const recommendationId = location.state?.recommendationId ?? null;
+  
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState([]);
@@ -267,6 +269,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
         title: title.trim(),
         description: description.trim(),
         steps: createPayloadSteps(),
+        ai_recommendation_id: recommendationId,
       };
 
       if (action === "submit_for_approval" && !isFirstVersion) {

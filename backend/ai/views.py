@@ -1,10 +1,14 @@
 from requests import RequestException
+from django.utils import timezone
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from ai.models import SourceType
+from ai.models import SourceType, AIRecommendation
+from procedures.models import ProcedureVersion
 from procedures.serializers import serialize_document
+from django.shortcuts import get_object_or_404
 
 from .generation_service import generate_steps_from_input, recommend_roles_for_steps
 from .search_service import semantic_search
@@ -214,6 +218,19 @@ def generate_procedure(request):
             amountSteps=amountSteps,
             instructions=instructions,
         )
+        ai_recommendation = AIRecommendation.objects.create(
+            recommendation_type = AIRecommendation.RecommendationType.PROCEDURE,
+            input_data  = {
+                "title": title,
+                "description": description,
+                "amountSteps": amountSteps,
+                "instructions": instructions
+            },
+            ai_output = result,
+            created_by= request.user,
+            
+        ) 
+        
     except RequestException as error:
         print("Local AI server error:", error)
 
@@ -252,9 +269,15 @@ def generate_procedure(request):
         )
 
     return Response(
-        result,
+        {
+            **result,
+            "recommendation_id": (
+                ai_recommendation.id
+            ),
+        },
         status=status.HTTP_200_OK,
     )
+    
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def recommend_step_roles(request):

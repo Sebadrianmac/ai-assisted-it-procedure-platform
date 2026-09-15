@@ -44,6 +44,7 @@ const AiProcedureHelper = () => {
       navigation("/procedure/create", {
         state: {
           generatedProcedure: procedure,
+          recommendationId: response.data.recommendation_id,
         },
       });
     } catch (error) {
@@ -68,7 +69,7 @@ const AiProcedureHelper = () => {
       </div>
       {additionalInfoForm && (
         <>
-            <p>Describe what you want to create.</p>
+          <p>Describe what you want to create.</p>
 
           <input
             type="text"

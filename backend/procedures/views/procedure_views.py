@@ -35,13 +35,15 @@ from ..services import (
 from ..validators import (
     validate_procedure_content,
 )
+from ai.models import AIRecommendation
+from ai.feedback_service import update_procedure_ai_feedback
 
 
 @api_view(["GET"])
 @permission_classes([
     IsAuthenticated,
 ])
-def status_list(request):
+def status_list(_request):
     return Response(
         [
             {
@@ -110,6 +112,57 @@ def create_procedure(request):
 
     if error_response:
         return error_response
+
+    ai_recommendation_id = request.data.get(
+        "ai_recommendation_id"
+    )
+    if (
+        ai_recommendation_id is not None
+        and (
+            not isinstance(ai_recommendation_id, int)
+            or isinstance(ai_recommendation_id, bool)
+        )
+    ):
+        return Response(
+            {
+                "ai_recommendation_id": (
+                    "AI recommendation ID must be an integer."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    ai_recommendation = None
+    if ai_recommendation_id is not None:
+        ai_recommendation = (
+            AIRecommendation.objects
+            .filter(
+                id=ai_recommendation_id,
+                created_by=request.user,
+                recommendation_type=(
+                    AIRecommendation
+                    .RecommendationType
+                    .PROCEDURE
+                ),
+                procedure_version__isnull=True,
+                feedback_status=(
+                    AIRecommendation
+                    .FeedbackStatus
+                    .PENDING
+                ),
+            )
+            .first()
+        )
+
+        if ai_recommendation is None:
+            return Response(
+                {
+                    "ai_recommendation_id": (
+                        "AI recommendation was not "
+                        "found or has already been used."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
     action = request.data.get(
         "action",
@@ -207,6 +260,21 @@ def create_procedure(request):
         version,
         validated_data["steps"],
     )
+    if ai_recommendation is not None:
+        ai_recommendation.procedure_version = (
+            version
+        )
+
+        ai_recommendation.save(
+            update_fields=[
+                "procedure_version",
+                "updated_at",
+            ]
+        )
+
+        update_procedure_ai_feedback(
+            version
+        )
 
     return Response(
         serialize_procedure_details(
@@ -280,20 +348,16 @@ def update_procedure(
         )
 
     active_version = (
-        ProcedureVersion.objects
-        .select_for_update()
+        ProcedureVersion.objects.select_for_update()
         .filter(
             procedure=procedure,
             status__in=[
                 StatusChoices.IN_PROGRESS,
                 StatusChoices.CREATED,
-                StatusChoices
-                .CLARIFICATION_NEEDED,
+                StatusChoices.CLARIFICATION_NEEDED,
             ],
         )
-        .prefetch_related(
-            "steps__documents"
-        )
+        .prefetch_related("steps__documents")
         .first()
     )
 
@@ -308,10 +372,7 @@ def update_procedure(
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if (
-        active_version.status
-        == StatusChoices.CREATED
-    ):
+    if active_version.status == StatusChoices.CREATED:
         return Response(
             {
                 "detail": (
@@ -351,9 +412,7 @@ def update_procedure(
     }
 
     validated_data, error_response = (
-        validate_procedure_content(
-            content_data
-        )
+        validate_procedure_content(content_data)
     )
 
     if error_response:
@@ -376,8 +435,7 @@ def update_procedure(
     if action == "submit_for_approval":
         steps_without_documents = [
             step_data["step_number"]
-            for step_data
-            in validated_data["steps"]
+            for step_data in validated_data["steps"]
             if not step_data["documents"]
         ]
 
@@ -393,9 +451,7 @@ def update_procedure(
                         steps_without_documents
                     ),
                 },
-                status=(
-                    status.HTTP_400_BAD_REQUEST
-                ),
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
     if action == "save_draft":
@@ -404,18 +460,13 @@ def update_procedure(
         )
 
     if action == "submit_for_approval":
-        if (
-            active_version.version_number
-            is None
-        ):
+        if active_version.version_number is None:
             current_version = (
                 ProcedureVersion.objects
                 .filter(
                     procedure=procedure,
                     is_current=True,
-                    status=(
-                        StatusChoices.COMPLETED
-                    ),
+                    status=StatusChoices.COMPLETED,
                 )
                 .first()
             )
@@ -443,17 +494,12 @@ def update_procedure(
                                 "be minor or major."
                             ),
                         },
-                        status=(
-                            status
-                            .HTTP_400_BAD_REQUEST
-                        ),
+                        status=status.HTTP_400_BAD_REQUEST,
                     )
 
-                major, minor = (
-                    calculate_next_version(
-                        procedure,
-                        change_type,
-                    )
+                major, minor = calculate_next_version(
+                    procedure,
+                    change_type,
                 )
 
                 active_version.version_major = (
@@ -473,28 +519,21 @@ def update_procedure(
             timezone.now()
         )
 
-    active_version.title = (
-        validated_data["title"]
-    )
-    active_version.description = (
-        validated_data["description"]
-    )
-
-    replace_version_steps(
-        active_version,
-        validated_data["steps"],
-    )
+    active_version.title = validated_data["title"]
+    active_version.description = validated_data["description"]
 
     active_version.save()
 
-    procedure.save(
-        update_fields=["updated_at"]
-    )
+    replace_version_steps(active_version, validated_data["steps"])
+
+    update_procedure_ai_feedback(active_version)
+
+    procedure.save(update_fields=["updated_at"])
 
     return Response(
         serialize_procedure_details(
             load_procedure(procedure.id),
-            request
+            request,
         ),
         status=status.HTTP_200_OK,
     )
