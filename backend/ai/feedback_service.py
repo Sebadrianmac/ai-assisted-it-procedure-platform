@@ -21,6 +21,12 @@ def update_procedure_ai_feedback(procedure_version):
         AIRecommendation.objects.filter(
             procedure_version=procedure_version,
             recommendation_type=AIRecommendation.RecommendationType.PROCEDURE,
+            feedback_status__in=[
+            AIRecommendation.FeedbackStatus.PENDING,
+            AIRecommendation.FeedbackStatus.ACCEPTED,
+            AIRecommendation.FeedbackStatus.MODIFIED,
+            AIRecommendation.FeedbackStatus.ABANDONED,
+            ],
         )
         .first()
     )

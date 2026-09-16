@@ -525,7 +525,6 @@ def update_procedure(
     active_version.save()
 
     replace_version_steps(active_version, validated_data["steps"])
-
     update_procedure_ai_feedback(active_version)
 
     procedure.save(update_fields=["updated_at"])

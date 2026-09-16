@@ -97,7 +97,6 @@ class AIRecommendation(models.Model):
         ACCEPTED = "accepted", "Accepted"
         MODIFIED = "modified", "Modified"
         REJECTED = "rejected", "Rejected"
-        ABANDONED = "abandoned", "Abandoned"
     recommendation_type = models.CharField(
         max_length=20,
         choices=RecommendationType.choices

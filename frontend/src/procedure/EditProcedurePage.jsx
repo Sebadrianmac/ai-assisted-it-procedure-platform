@@ -29,7 +29,10 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
   const generatedProcedure = location.state?.generatedProcedure;
   const recommendationId = location.state?.recommendationId ?? null;
-  
+  const isUnsavedAiProcedure = isCreateMode && recommendationId !== null;
+  const [isDiscarding, setIsDiscarding] = useState(false);
+  const [discardError, setDiscardError] = useState("");
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [steps, setSteps] = useState([]);
@@ -52,7 +55,8 @@ const EditProcedurePage = ({ permissions = [] }) => {
     ? permissions.includes("procedures.add_procedure")
     : permissions.includes("procedures.change_procedure");
   const isWaitingForApproval = status === "created";
-  const isFormDisabled = !canEdit || isSaving || isWaitingForApproval;
+  const isFormDisabled =
+    !canEdit || isSaving || isWaitingForApproval || isDiscarding;
 
   const [instructions, setInstructions] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -452,6 +456,34 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
     handleGenerateSteps();
   };
+  const handleCancel = async () => {
+    if (!isUnsavedAiProcedure) {
+      navigate(isCreateMode ? "/procedures" : `/procedures/${procedureId}`);
+      return;
+    }
+    try {
+      setIsDiscarding(true);
+      setError("");
+
+      await api.patch(`/api/ai/recommendations/${recommendationId}/reject/`, {
+        reason: "User left the AI-generated procedure " + "without saving it.",
+      });
+
+      navigate("/procedures", {
+        replace: true,
+      });
+    } catch (error) {
+      console.error("Failed to reject AI recommendation:", error);
+
+      setError(
+        error.response?.data?.reason ||
+          error.response?.data?.detail ||
+          "Failed to cancel AI recommendation.",
+      );
+    } finally {
+      setIsDiscarding(false);
+    }
+  };
   if (isLoading) {
     return <p>Loading procedure...</p>;
   }
@@ -586,14 +618,14 @@ const EditProcedurePage = ({ permissions = [] }) => {
           <button
             type="button"
             className="edit-cancel-button"
-            onClick={() =>
-              navigate(
-                isCreateMode ? "/procedures" : `/procedures/${procedureId}`,
-              )
-            }
-            disabled={isSaving}
+            onClick={handleCancel}
+            disabled={isSaving || isDiscarding}
           >
-            Cancel
+            {isDiscarding
+              ? "Cancelling..."
+              : recommendationId
+                ? "Cancel recommendation"
+                : "Cancel"}
           </button>
 
           {canEdit && !isWaitingForApproval && (
@@ -601,7 +633,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
               <button
                 type="submit"
                 className="edit-save-button"
-                disabled={isSaving || isGenerating}
+                disabled={isSaving || isGenerating || isDiscarding}
               >
                 {isSaving ? "Saving..." : "Save draft"}
               </button>
@@ -610,7 +642,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
                 type="button"
                 className="edit-submit-button"
                 onClick={openSubmitDialog}
-                disabled={isSaving || isGenerating}
+                disabled={isSaving || isGenerating || isDiscarding}
               >
                 Submit for approval
               </button>

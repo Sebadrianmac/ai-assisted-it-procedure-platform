@@ -2,11 +2,12 @@ from requests import RequestException
 from django.utils import timezone
 
 from rest_framework import status
+from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ai.models import SourceType, AIRecommendation
-from procedures.models import ProcedureVersion
+from procedures.models import ProcedureVersion, StatusChoices
 from procedures.serializers import serialize_document
 from django.shortcuts import get_object_or_404
 
@@ -348,3 +349,90 @@ def recommend_step_roles(request):
         },
         status=status.HTTP_200_OK,
     )
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def reject_ai_recommendation(request, recommendationId):
+    reason = request.data.get("reason")
+    if not isinstance(reason, str):
+        return Response(
+            {
+                "reason": (
+                    "Reason must be text."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    reason = reason.strip()
+
+    if not reason:
+        return Response(
+            {
+                "reason": (
+                    "Reason cannot be empty."
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    recommendation = get_object_or_404(
+            AIRecommendation.objects
+            .select_for_update(),
+            id=recommendationId,
+            created_by=request.user,
+            recommendation_type=(
+                AIRecommendation
+                .RecommendationType
+                .PROCEDURE
+            ),
+            feedback_status__in=[
+            AIRecommendation.FeedbackStatus.PENDING,
+            AIRecommendation.FeedbackStatus.ACCEPTED,
+            AIRecommendation.FeedbackStatus.MODIFIED,
+        ],
+    )
+    procedure_version = recommendation.procedure_version
+    if (
+        procedure_version is not None 
+        and procedure_version.status
+        not in [
+            StatusChoices.IN_PROGRESS,
+            StatusChoices.CLARIFICATION_NEEDED
+        ]
+    ):
+        return Response(
+            {
+                "detail": (
+                    "Only an unsaved result or "
+                    "an active draft can be rejected."
+                    )
+            },
+            status=status.HTTP_400_BAD_REQUEST                    
+        )
+    recommendation.feedback_status = (
+        AIRecommendation.FeedbackStatus.REJECTED
+    )
+    recommendation.feedback_reason = reason
+    recommendation.evaluated_at = timezone.now()
+    
+    recommendation.save(
+        update_fields=[
+            "feedback_status",
+            "feedback_reason",
+            "evaluated_at",
+            "updated_at",
+        ]
+    )
+    return Response(
+        {
+            "id": recommendation.id,
+            "feedback_status": (
+                recommendation.feedback_status
+            ),
+            "feedback_reason": (
+                recommendation.feedback_reason
+            ),
+        },
+        status=status.HTTP_200_OK,
+    )
+        

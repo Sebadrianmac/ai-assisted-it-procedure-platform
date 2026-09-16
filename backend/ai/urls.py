@@ -7,4 +7,5 @@ urlpatterns = [
     path("generate-procedure-steps/", views.generate_procedure_steps, name="generate-procedure_steps",),
     path("generate-procedure/", views.generate_procedure, name="generate-procedure"),
     path("recommend-step-roles/", views.recommend_step_roles, name="recommend-step-role"),
+    path("recommendations/<int:recommendationId>/reject/", views.reject_ai_recommendation, name="reject-recommendation"),
 ]
