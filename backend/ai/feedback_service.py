@@ -1,5 +1,11 @@
 from ai.models import AIRecommendation
 from django.utils import timezone
+from django.db import transaction
+
+from ai.embedding_service import (
+    index_ai_feedback,
+)
+
 
 def normalize_procedure_output(procedure_data):
     return {
@@ -22,10 +28,9 @@ def update_procedure_ai_feedback(procedure_version):
             procedure_version=procedure_version,
             recommendation_type=AIRecommendation.RecommendationType.PROCEDURE,
             feedback_status__in=[
-            AIRecommendation.FeedbackStatus.PENDING,
-            AIRecommendation.FeedbackStatus.ACCEPTED,
-            AIRecommendation.FeedbackStatus.MODIFIED,
-            AIRecommendation.FeedbackStatus.ABANDONED,
+                AIRecommendation.FeedbackStatus.PENDING,
+                AIRecommendation.FeedbackStatus.ACCEPTED,
+                AIRecommendation.FeedbackStatus.MODIFIED,
             ],
         )
         .first()
@@ -47,9 +52,8 @@ def update_procedure_ai_feedback(procedure_version):
                 "step_number": step.step_number,
                 "description": step.description.strip(),
                 "document_ids": sorted(
-                    document.id 
-                    for document in step.documents.all()
-                    ),
+                    document.id for document in step.documents.all()
+                ),
             }
             for step in procedure_version.steps.order_by("step_number")
         ],
@@ -59,7 +63,12 @@ def update_procedure_ai_feedback(procedure_version):
         feedback_status = AIRecommendation.FeedbackStatus.ACCEPTED
     else:
         feedback_status = AIRecommendation.FeedbackStatus.MODIFIED
-
+    should_reindex = (
+        ai_recommendation.feedback_status
+        != feedback_status
+        or ai_recommendation.final_output
+        != final_output
+    )
     ai_recommendation.final_output = final_output
     ai_recommendation.feedback_status = feedback_status
     ai_recommendation.evaluated_at = timezone.now()
@@ -72,4 +81,9 @@ def update_procedure_ai_feedback(procedure_version):
             "updated_at",
         ]
     )
+    if should_reindex:
+        transaction.on_commit(
+            lambda: index_ai_feedback(ai_recommendation),
+            robust=True,
+        )
     return ai_recommendation

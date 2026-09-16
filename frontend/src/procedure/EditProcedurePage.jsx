@@ -31,7 +31,6 @@ const EditProcedurePage = ({ permissions = [] }) => {
   const recommendationId = location.state?.recommendationId ?? null;
   const isUnsavedAiProcedure = isCreateMode && recommendationId !== null;
   const [isDiscarding, setIsDiscarding] = useState(false);
-  const [discardError, setDiscardError] = useState("");
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");

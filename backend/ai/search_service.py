@@ -118,3 +118,33 @@ def search_relevant_documents(
             break
 
     return recommendations
+
+def search_similar_ai_feedback(
+    title,
+    description,
+    instructions,
+    limit=3,
+):
+    search_query = " ".join(
+        part.strip()
+        for part in [
+            title,
+            description,
+            instructions,
+        ]
+        if (
+            isinstance(part, str)
+            and part.strip()
+        )
+    )
+
+    if not search_query:
+        raise ValueError(
+            "Procedure information cannot be empty."
+        )
+
+    return semantic_search(
+        query=search_query,
+        limit=limit,
+        source_type=SourceType.AI_FEEDBACK,
+    )
