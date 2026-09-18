@@ -29,8 +29,8 @@ const EditProcedurePage = ({ permissions = [] }) => {
 
   const generatedProcedure = location.state?.generatedProcedure;
   const recommendationId = location.state?.recommendationId ?? null;
-  const isUnsavedAiProcedure = isCreateMode && recommendationId !== null;
   const [isDiscarding, setIsDiscarding] = useState(false);
+  const [stepsRecommendationId, setStepsRecommendationId] = useState(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -272,7 +272,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
         title: title.trim(),
         description: description.trim(),
         steps: createPayloadSteps(),
-        ai_recommendation_id: recommendationId,
+        ai_recommendation_ids: aiRecommendationIds,
       };
 
       if (action === "submit_for_approval" && !isFirstVersion) {
@@ -293,6 +293,7 @@ const EditProcedurePage = ({ permissions = [] }) => {
       }
 
       const updatedProcedure = response.data;
+      setStepsRecommendationId(null);
 
       if (isCreateMode) {
         navigate(`/procedures/edit/${updatedProcedure.id}`, {
@@ -304,15 +305,12 @@ const EditProcedurePage = ({ permissions = [] }) => {
       const displayVersion = updatedActiveVersion ?? updatedCurrentVersion;
 
       setProcedure(updatedProcedure);
-
       setActiveVersion(updatedActiveVersion);
       setCurrentVersion(updatedCurrentVersion);
-
       setTitle(displayVersion?.title ?? "");
       setDescription(displayVersion?.description ?? "");
       setStatus(displayVersion?.status ?? "");
       setStatusLabel(displayVersion?.status_label ?? "");
-
       setSteps(
         displayVersion?.steps?.map((step) => ({
           id: step.id,
@@ -331,7 +329,6 @@ const EditProcedurePage = ({ permissions = [] }) => {
         setSuccessMessage("Draft saved successfully.");
       } else {
         setSuccessMessage("Procedure submitted " + "for approval.");
-
         setIsSubmitDialogOpen(false);
       }
     } catch (error) {
@@ -391,50 +388,98 @@ const EditProcedurePage = ({ permissions = [] }) => {
     await saveProcedure("submit_for_approval", changeType);
   };
   const handleGenerateSteps = async () => {
-    if (!title.trim()) {
-      setAiGeneratingError("Enter a title before generating steps.");
+  if (!title.trim()) {
+    setAiGeneratingError(
+      "Enter a title before generating steps.",
+    );
+    return;
+  }
 
-      return;
-    }
-    if (!description.trim()) {
-      setAiGeneratingError("Enter a description before generating steps.");
-      return;
-    }
-    if (
-      steps.length > 0 &&
-      !window.confirm(
-        "Generating new steps will replace the existing steps. Continue?",
-      )
-    ) {
-      return;
-    }
+  if (!description.trim()) {
+    setAiGeneratingError(
+      "Enter a description before generating steps.",
+    );
+    return;
+  }
 
-    try {
-      setIsGenerating(true);
-      setAiGeneratingError("");
+  if (
+    steps.length > 0 &&
+    !window.confirm(
+      "Generating new steps will replace the existing steps. Continue?",
+    )
+  ) {
+    return;
+  }
 
-      const response = await api.post("/api/ai/generate-procedure-steps/", {
+  const previousRecommendationId =
+    stepsRecommendationId;
+
+  try {
+    setIsGenerating(true);
+    setAiGeneratingError("");
+
+    const response = await api.post(
+      "/api/ai/generate-procedure-steps/",
+      {
         title: title.trim(),
         description: description.trim(),
         instructions: instructions.trim(),
-      });
-      const procedureSteps = response.data.procedure.steps ?? [];
-      const preparedSteps = procedureSteps.map((step) => ({
+      },
+    );
+
+    const procedureSteps =
+      response.data.procedure.steps ?? [];
+
+    const newRecommendationId =
+      response.data.step_recommendation_id ?? null;
+
+    const preparedSteps = procedureSteps.map(
+      (step) => ({
         ...step,
         document_ids: [],
-      }));
+      }),
+    );
 
-      setSteps(preparedSteps);
-    } catch (error) {
-      console.error("Failed to generate procedure steps:", error);
-
-      setAiGeneratingError(
-        error.response?.data?.detail || "Failed to generate procedure steps.",
+    if (
+      previousRecommendationId !== null &&
+      previousRecommendationId !==
+        newRecommendationId
+    ) {
+      await api.patch(
+        `/api/ai/recommendations/${previousRecommendationId}/reject/`,
+        {
+          reason:
+            "Replaced by a newer step generation.",
+        },
       );
-    } finally {
-      setIsGenerating(false);
     }
-  };
+
+    setSteps(preparedSteps);
+    setStepsRecommendationId(
+      newRecommendationId,
+    );
+  } catch (error) {
+    console.error(
+      "Failed to generate procedure steps:",
+      error,
+    );
+
+    setAiGeneratingError(
+      error.response?.data?.reason ||
+        error.response?.data?.detail ||
+        "Failed to generate procedure steps.",
+    );
+  } finally {
+    setIsGenerating(false);
+  }
+};
+  const aiRecommendationIds = [
+    ...new Set(
+      [recommendationId, stepsRecommendationId]
+        .map((id) => (id !== null && id !== undefined ? Number(id) : null))
+        .filter((id) => Number.isInteger(id) && id > 0),
+    ),
+  ];
   const handleInstructionsKeyDown = (event) => {
     if (event.nativeEvent.isComposing) {
       return;
@@ -456,28 +501,37 @@ const EditProcedurePage = ({ permissions = [] }) => {
     handleGenerateSteps();
   };
   const handleCancel = async () => {
-    if (!isUnsavedAiProcedure) {
-      navigate(isCreateMode ? "/procedures" : `/procedures/${procedureId}`);
+    const destination = isCreateMode
+      ? "/procedures"
+      : `/procedures/${procedureId}`;
+
+    if (aiRecommendationIds.length === 0) {
+      navigate(destination);
       return;
     }
+
     try {
       setIsDiscarding(true);
       setError("");
 
-      await api.patch(`/api/ai/recommendations/${recommendationId}/reject/`, {
-        reason: "User left the AI-generated procedure " + "without saving it.",
-      });
+      await Promise.all(
+        aiRecommendationIds.map((recommendationId) =>
+          api.patch(`/api/ai/recommendations/${recommendationId}/reject/`, {
+            reason: "User left the AI-generated result " + "without saving it.",
+          }),
+        ),
+      );
 
-      navigate("/procedures", {
+      navigate(destination, {
         replace: true,
       });
     } catch (error) {
-      console.error("Failed to reject AI recommendation:", error);
+      console.error("Failed to reject AI recommendations:", error);
 
       setError(
         error.response?.data?.reason ||
           error.response?.data?.detail ||
-          "Failed to cancel AI recommendation.",
+          "Failed to cancel AI recommendations.",
       );
     } finally {
       setIsDiscarding(false);

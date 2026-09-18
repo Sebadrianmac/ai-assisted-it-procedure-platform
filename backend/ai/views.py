@@ -130,6 +130,16 @@ def generate_procedure_steps(request):
             description=description,
             instructions=instructions,
         )
+        ai_recommendation = AIRecommendation.objects.create(
+            recommendation_type = AIRecommendation.RecommendationType.PROCEDURE_STEP,
+            input_data  = {
+                "title": title,
+                "description": description,
+                "instructions": instructions
+            },
+            ai_output = result,
+            created_by= request.user,
+        ) 
     except ValueError as error:
         return Response(
             {"detail": str(error)},
@@ -150,7 +160,14 @@ def generate_procedure_steps(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    return Response(result, status=status.HTTP_200_OK)
+    return Response({
+            **result,
+            "step_recommendation_id": (
+                ai_recommendation.id
+            ),
+        },
+        status=status.HTTP_200_OK                
+    )
 
 
 @api_view(["POST"])
@@ -229,7 +246,6 @@ def generate_procedure(request):
             },
             ai_output = result,
             created_by= request.user,
-            
         ) 
         
     except RequestException as error:
@@ -354,13 +370,10 @@ def recommend_step_roles(request):
 @transaction.atomic
 def reject_ai_recommendation(request, recommendationId):
     reason = request.data.get("reason")
+
     if not isinstance(reason, str):
         return Response(
-            {
-                "reason": (
-                    "Reason must be text."
-                )
-            },
+            {"reason": "Reason must be text."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -368,53 +381,26 @@ def reject_ai_recommendation(request, recommendationId):
 
     if not reason:
         return Response(
-            {
-                "reason": (
-                    "Reason cannot be empty."
-                )
-            },
+            {"reason": "Reason cannot be empty."},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
     recommendation = get_object_or_404(
-            AIRecommendation.objects
-            .select_for_update(),
-            id=recommendationId,
-            created_by=request.user,
-            recommendation_type=(
-                AIRecommendation
-                .RecommendationType
-                .PROCEDURE
-            ),
-            feedback_status__in=[
-            AIRecommendation.FeedbackStatus.PENDING,
-            AIRecommendation.FeedbackStatus.ACCEPTED,
-            AIRecommendation.FeedbackStatus.MODIFIED,
+        AIRecommendation.objects.select_for_update(),
+        id=recommendationId,
+        created_by=request.user,
+        recommendation_type__in=[
+            AIRecommendation.RecommendationType.PROCEDURE,
+            AIRecommendation.RecommendationType.PROCEDURE_STEP,
         ],
+        feedback_status=AIRecommendation.FeedbackStatus.PENDING,
+        procedure_version__isnull=True,
     )
-    procedure_version = recommendation.procedure_version
-    if (
-        procedure_version is not None 
-        and procedure_version.status
-        not in [
-            StatusChoices.IN_PROGRESS,
-            StatusChoices.CLARIFICATION_NEEDED
-        ]
-    ):
-        return Response(
-            {
-                "detail": (
-                    "Only an unsaved result or "
-                    "an active draft can be rejected."
-                    )
-            },
-            status=status.HTTP_400_BAD_REQUEST                    
-        )
-    recommendation.feedback_status = (
-        AIRecommendation.FeedbackStatus.REJECTED
-    )
+
+    recommendation.feedback_status = AIRecommendation.FeedbackStatus.REJECTED
     recommendation.feedback_reason = reason
     recommendation.evaluated_at = timezone.now()
-    
+
     recommendation.save(
         update_fields=[
             "feedback_status",
@@ -423,16 +409,13 @@ def reject_ai_recommendation(request, recommendationId):
             "updated_at",
         ]
     )
+
     return Response(
         {
             "id": recommendation.id,
-            "feedback_status": (
-                recommendation.feedback_status
-            ),
-            "feedback_reason": (
-                recommendation.feedback_reason
-            ),
+            "recommendation_type": recommendation.recommendation_type,
+            "feedback_status": recommendation.feedback_status,
+            "feedback_reason": recommendation.feedback_reason,
         },
         status=status.HTTP_200_OK,
     )
-        

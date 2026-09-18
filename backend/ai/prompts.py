@@ -6,6 +6,7 @@ def build_procedure_steps_prompt(
     title,
     description,
     instructions="",
+    feedback_context="",
 ):
     return dedent(
         f"""
@@ -42,7 +43,17 @@ def build_procedure_steps_prompt(
         
         ADDITIONAL INSTRUCTIONS:
         {instructions.strip()}
-        """
+        
+        PAST USER FEEDBACK:
+        {feedback_context or "No relevant step feedback was found."}
+
+        HOW TO USE FEEDBACK:
+        - Use accepted examples as positive guidance.
+        - For modified examples, prefer the user-corrected steps.
+        - Do not copy examples word for word.
+        - Generate steps for the current procedure.
+        - Do not mention feedback in the response.
+                """
     ).strip()
     
 def build_procedure_from_examples_prompt(

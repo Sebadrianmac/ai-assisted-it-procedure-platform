@@ -89,9 +89,7 @@ def index_document(document):
     ]
 
     content = "\n\n".join(
-        part.strip()
-        for part in content_parts
-        if part and part.strip()
+        part.strip() for part in content_parts if part and part.strip()
     )
 
     if not content:
@@ -102,34 +100,28 @@ def index_document(document):
     source, _ = KnowledgeSource.objects.get_or_create(
         source_type=SourceType.DOCUMENT,
         document=document,
-        defaults={
-            "is_active": True,
-        },
+        defaults={"is_active": True},
     )
 
     _, tokenizer = load_embedding_model()
-
     chunks = split_text_into_chunks(
         content,
         tokenizer,
     )
 
     indexed_items = []
-
     for chunk_number, chunk_content in enumerate(chunks):
         embedding = generate_embedding(
             chunk_content,
         )
 
-        knowledge_item, _ = (
-            KnowledgeBaseItem.objects.update_or_create(
-                source=source,
-                chunk_number=chunk_number,
-                defaults={
-                    "content": chunk_content,
-                    "embedding": embedding,
-                },
-            )
+        knowledge_item, _ = KnowledgeBaseItem.objects.update_or_create(
+            source=source,
+            chunk_number=chunk_number,
+            defaults={
+                "content": chunk_content,
+                "embedding": embedding,
+            },
         )
 
         indexed_items.append(knowledge_item)
@@ -140,70 +132,47 @@ def index_document(document):
     ).delete()
 
     return indexed_items
+
 def index_ai_feedback(
     recommendation,
 ):
-    content = build_ai_feedback_content(
-        recommendation
-    )
+    content = build_ai_feedback_content(recommendation)
 
-    source, _ = (
-        KnowledgeSource.objects
-        .update_or_create(
-            ai_recommendation=recommendation,
-            defaults={
-                "source_type": (
-                    SourceType.AI_FEEDBACK
-                ),
-                "document": None,
-                "procedure_version": None,
-                "is_active": True,
-            },
-        )
+    source, _ = KnowledgeSource.objects.update_or_create(
+        ai_recommendation=recommendation,
+        defaults={
+            "source_type": SourceType.AI_FEEDBACK,
+            "document": None,
+            "procedure_version": None,
+            "is_active": True,
+        },
     )
 
     _, tokenizer = load_embedding_model()
-
-    chunks = split_text_into_chunks(
-        content,
-        tokenizer,
-    )
+    chunks = split_text_into_chunks(content, tokenizer)
 
     indexed_items = []
+    for chunk_number, chunk_content in enumerate(chunks):
+        embedding = generate_embedding(chunk_content)
 
-    for chunk_number, chunk_content in enumerate(
-        chunks
-    ):
-        embedding = generate_embedding(
-            chunk_content
-        )
-
-        knowledge_item, _ = (
-            KnowledgeBaseItem.objects
-            .update_or_create(
-                source=source,
-                chunk_number=chunk_number,
-                defaults={
-                    "content": chunk_content,
-                    "embedding": embedding,
-                },
-            )
-        )
-
-        indexed_items.append(
-            knowledge_item
-        )
-
-    (
-        KnowledgeBaseItem.objects
-        .filter(
+        knowledge_item, _ = KnowledgeBaseItem.objects.update_or_create(
             source=source,
-            chunk_number__gte=len(chunks),
+            chunk_number=chunk_number,
+            defaults={
+                "content": chunk_content,
+                "embedding": embedding,
+            },
         )
-        .delete()
-    )
+
+        indexed_items.append(knowledge_item)
+
+    KnowledgeBaseItem.objects.filter(
+        source=source,
+        chunk_number__gte=len(chunks),
+    ).delete()
 
     return indexed_items
+
 def index_procedure_version(
     procedure_version,
 ):
@@ -295,13 +264,23 @@ def build_ai_feedback_content(
 
     if (
         recommendation.recommendation_type
+        == AIRecommendation.RecommendationType.PROCEDURE_STEP
+    ):
+        return build_steps_feedback_content(
+            recommendation
+        )
+
+    if (
+        recommendation.recommendation_type
         != AIRecommendation.RecommendationType.PROCEDURE
     ):
         raise ValueError(
-            "Only procedure recommendations "
-            "can currently be indexed."
+            "This AI recommendation type "
+            "cannot currently be indexed."
         )
 
+
+def build_procedure_feedback_content(recommendation):
     final_output = recommendation.final_output
 
     if not isinstance(final_output, dict):
@@ -383,6 +362,125 @@ def build_ai_feedback_content(
             )
 
     return "\n\n".join(content_parts)
+
+
+def build_steps_feedback_content(
+    recommendation,
+):
+    input_data = recommendation.input_data
+    final_output = (
+        recommendation.final_output
+    )
+
+    if not isinstance(input_data, dict):
+        raise ValueError(
+            "AI recommendation does not "
+            "contain valid input data."
+        )
+
+    if not isinstance(final_output, dict):
+        raise ValueError(
+            "AI recommendation does not "
+            "contain valid final output."
+        )
+
+    steps = final_output.get("steps")
+
+    if not isinstance(steps, list):
+        raise ValueError(
+            "AI recommendation does not "
+            "contain a valid steps list."
+        )
+
+    content_parts = [
+        "AI procedure steps feedback",
+        (
+            "Feedback status: "
+            f"{recommendation.feedback_status}"
+        ),
+    ]
+
+    title = input_data.get("title")
+
+    if (
+        isinstance(title, str)
+        and title.strip()
+    ):
+        content_parts.append(
+            "Procedure title:\n"
+            f"{title.strip()}"
+        )
+
+    description = input_data.get(
+        "description"
+    )
+
+    if (
+        isinstance(description, str)
+        and description.strip()
+    ):
+        content_parts.append(
+            "Procedure description:\n"
+            f"{description.strip()}"
+        )
+
+    instructions = input_data.get(
+        "instructions"
+    )
+
+    if (
+        isinstance(instructions, str)
+        and instructions.strip()
+    ):
+        content_parts.append(
+            "User instructions:\n"
+            f"{instructions.strip()}"
+        )
+
+    step_lines = []
+
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+
+        step_number = step.get(
+            "step_number"
+        )
+        step_description = step.get(
+            "description"
+        )
+
+        if (
+            isinstance(step_number, int)
+            and not isinstance(
+                step_number,
+                bool,
+            )
+            and isinstance(
+                step_description,
+                str,
+            )
+            and step_description.strip()
+        ):
+            step_lines.append(
+                f"{step_number}. "
+                f"{step_description.strip()}"
+            )
+
+    if not step_lines:
+        raise ValueError(
+            "AI recommendation does not "
+            "contain valid final steps."
+        )
+
+    content_parts.append(
+        "Final steps:\n"
+        + "\n".join(step_lines)
+    )
+
+    return "\n\n".join(content_parts)
+
+
 def load_embedding_model():
     global model, tokenizer
 
@@ -412,7 +510,6 @@ def load_embedding_model():
     model.eval()
 
     return model, tokenizer
-
 
 def generate_embedding(text, is_query=False):
     if not text or not text.strip():
