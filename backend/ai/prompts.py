@@ -6,6 +6,7 @@ def build_procedure_steps_prompt(
     title,
     description,
     instructions="",
+    feedback_context="",
 ):
     return dedent(
         f"""
@@ -42,7 +43,17 @@ def build_procedure_steps_prompt(
         
         ADDITIONAL INSTRUCTIONS:
         {instructions.strip()}
-        """
+        
+        PAST USER FEEDBACK:
+        {feedback_context or "No relevant step feedback was found."}
+
+        HOW TO USE FEEDBACK:
+        - Use accepted examples as positive guidance.
+        - For modified examples, prefer the user-corrected steps.
+        - Do not copy examples word for word.
+        - Generate steps for the current procedure.
+        - Do not mention feedback in the response.
+                """
     ).strip()
     
 def build_procedure_from_examples_prompt(
@@ -50,7 +61,8 @@ def build_procedure_from_examples_prompt(
     description,
     instructions,
     amountSteps,
-    context,
+    procedure_context,
+    feedback_context,
 ):
     title_instruction = (
         title.strip()
@@ -72,48 +84,50 @@ def build_procedure_from_examples_prompt(
 
     return dedent(
         f"""
-        TASK:
-        Create a complete IT procedure using the
-        user's request and previous procedures as examples.
+        Create a new IT procedure based on the user's request.
+
+        USER INPUT:
+        Title preference: {title}
+        Description preference: {description}
+        Requested number of steps: {amountSteps}
+        Instructions: {instructions}
+
+        APPROVED PROCEDURE EXAMPLES:
+        {procedure_context or "No approved procedure examples were found."}
+
+        USER FEEDBACK EXAMPLES:
+        {feedback_context or "No relevant user feedback examples were found."}
+
+        HOW TO USE THE CONTEXT:
+        - Approved procedures are the primary source of organizational knowledge.
+        - User feedback examples show preferred structure, wording, and corrections.
+        - For modified feedback, prefer the user-corrected result over the original AI result.
+        - Do not copy an example word for word.
+        - Create a new procedure that matches the current user request.
+        - Do not mention the examples or feedback in the response.
 
         OUTPUT FORMAT:
-        Return one JSON object with this structure:
+        Return one valid JSON object:
         {{
-          "title": "Procedure title",
-          "description": "Procedure description",
-          "steps": [
-            {{
-              "step_number": 1,
-              "description": "Action to perform"
-            }}
-          ]
+            "title": "Procedure title",
+            "description": "Procedure description",
+            "steps": [
+                {{
+                    "step_number": 1,
+                    "description": "Action to perform"
+                }}
+            ]
         }}
 
         RULES:
         - Return valid JSON only.
         - Do not use Markdown.
-        - {steps_instruction}
-        - Start step numbers at 1.
-        - Keep step numbers sequential.
-        - Every step must describe one clear action.
-        - Use previous procedures only as examples.
-        - Do not copy irrelevant steps.
-        - Do not invent company-specific policies.
+        - Return between 3 and 10 steps.
+        - Follow the requested number of steps when it is provided.
+        - Step numbers must start at 1 and be sequential.
+        - Every step must contain a clear description.
         - Answer in English.
-
-        PREFERRED TITLE:
-        {title_instruction}
-
-        PREFERRED DESCRIPTION:
-        {description_instruction}
-
-        USER REQUEST:
-        {instructions.strip()}
-
-        PREVIOUS PROCEDURE EXAMPLES:
-        {context}
-        """
-    ).strip()
+        """.strip())
     
 def build_role_recommendation_prompt(
     steps_text,

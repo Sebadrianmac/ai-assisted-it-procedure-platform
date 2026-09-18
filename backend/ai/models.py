@@ -2,10 +2,64 @@ from django.db import models
 from pgvector.django import VectorField
 from procedures.models import Document, ProcedureVersion
 from django.db.models import Q
-
+from users.models import User
+class AIRecommendation(models.Model):
+    class RecommendationType(models.TextChoices):
+        PROCEDURE = "procedure", "Procedure"
+        PROCEDURE_STEP = "procedure_step", "Procedure step"
+        STEP_ROLE = "step_role", "Step role"
+        DOCUMENTS = "documents", "Documents"
+    class FeedbackStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        ACCEPTED = "accepted", "Accepted"
+        MODIFIED = "modified", "Modified"
+        REJECTED = "rejected", "Rejected"
+    recommendation_type = models.CharField(
+        max_length=20,
+        choices=RecommendationType.choices
+    )
+    procedure_version = models.ForeignKey(
+        ProcedureVersion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="ai_recommendations",
+    )
+    input_data = models.JSONField()
+    
+    ai_output = models.JSONField()
+    
+    final_output = models.JSONField(
+        null=True,
+        blank=True
+    )
+    
+    feedback_status = models.CharField(
+        max_length=20,
+        choices=FeedbackStatus.choices,
+        default=FeedbackStatus.PENDING
+    )
+    feedback_reason = models.TextField(
+        blank=True,
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="ai_recommendations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    evaluated_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    updated_at =models.DateTimeField(auto_now=True)
+    
 class SourceType(models.TextChoices):
     DOCUMENT = "document", "Document"
     PROCEDURE = "procedure", "Procedure"
+    AI_FEEDBACK = "ai_feedback", "AI Feedback"
 
 class KnowledgeSource(models.Model):
     source_type=models.CharField(
@@ -26,6 +80,13 @@ class KnowledgeSource(models.Model):
         blank=True,
         related_name="knowledge_source",
         )
+    ai_recommendation = models.OneToOneField(
+        AIRecommendation,
+        on_delete=models.CASCADE,
+        null=True, 
+        blank=True,
+        related_name="knowledge_source",
+        )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -37,12 +98,21 @@ class KnowledgeSource(models.Model):
                         source_type=SourceType.DOCUMENT,
                         document__isnull=False,
                         procedure_version__isnull=True,
+                        ai_recommendation__isnull=True,
                     )
                     |
                     Q(
                         source_type=SourceType.PROCEDURE,
                         document__isnull=True,
                         procedure_version__isnull=False,
+                        ai_recommendation__isnull=True,
+                    )
+                    |
+                    Q(
+                        source_type=SourceType.AI_FEEDBACK,
+                        document__isnull=True,
+                        procedure_version__isnull=True,
+                        ai_recommendation__isnull=False,
                     )
                 ),
                 name="knowledge_source_matches_type",
@@ -63,10 +133,10 @@ class KnowledgeBaseItem(models.Model):
     created_at = models.DateTimeField(
         auto_now_add=True,
     )
-
+    
     def __str__(self):
         return (
-            f"{self.document.title} "
+            f"Source {self.source_id} "
             f"- chunk {self.chunk_number}"
         )
 

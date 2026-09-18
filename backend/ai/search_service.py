@@ -1,12 +1,13 @@
 ## Semantic search in pgvector
 from pgvector.django import CosineDistance
 from ai.embedding_service import generate_embedding
-from ai.models import KnowledgeBaseItem, SourceType
+from ai.models import AIRecommendation, KnowledgeBaseItem, SourceType
 
 def semantic_search(
     query,
     limit=5,
     source_type=None,
+    recommendation_type=None,
 ):
     if not query or not query.strip():
         raise ValueError(
@@ -24,6 +25,7 @@ def semantic_search(
             "source",
             "source__document",
             "source__procedure_version",
+            "source__ai_recommendation",
         )
         .filter(
             source__is_active=True,
@@ -34,7 +36,11 @@ def semantic_search(
         results = results.filter(
             source__source_type=source_type,
         )
-
+    if recommendation_type:
+        results = results.filter(source__ai_recommendation__recommendation_type=(
+                recommendation_type
+            ),
+        )
     results = (
         results
         .annotate(
@@ -118,3 +124,74 @@ def search_relevant_documents(
             break
 
     return recommendations
+
+def search_similar_steps_feedback(
+    title,
+    description,
+    instructions,
+    limit=2,
+):
+    search_query = " ".join(
+        part.strip()
+        for part in [
+            title,
+            description,
+            instructions,
+        ]
+        if (
+            isinstance(part, str)
+            and part.strip()
+        )
+    )
+
+    if not search_query:
+        raise ValueError(
+            "Procedure information cannot "
+            "be empty."
+        )
+
+    return semantic_search(
+        query=search_query,
+        limit=limit,
+        source_type=SourceType.AI_FEEDBACK,
+        recommendation_type=(
+            AIRecommendation
+            .RecommendationType
+            .PROCEDURE_STEP
+        ),
+    )
+    
+def search_similar_ai_feedback(
+    title,
+    description,
+    instructions,
+    limit=3,
+):
+    search_query = " ".join(
+        part.strip()
+        for part in [
+            title,
+            description,
+            instructions,
+        ]
+        if (
+            isinstance(part, str)
+            and part.strip()
+        )
+    )
+
+    if not search_query:
+        raise ValueError(
+            "Procedure information cannot be empty."
+        )
+
+    return semantic_search(
+        query=search_query,
+        limit=limit,
+        source_type=SourceType.AI_FEEDBACK,
+        recommendation_type=(
+            AIRecommendation
+            .RecommendationType
+            .PROCEDURE
+        ),
+    )

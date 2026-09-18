@@ -1,10 +1,15 @@
 from requests import RequestException
+from django.utils import timezone
+
 from rest_framework import status
+from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from ai.models import SourceType
+from ai.models import SourceType, AIRecommendation
+from procedures.models import ProcedureVersion, StatusChoices
 from procedures.serializers import serialize_document
+from django.shortcuts import get_object_or_404
 
 from .generation_service import generate_steps_from_input, recommend_roles_for_steps
 from .search_service import semantic_search
@@ -125,6 +130,16 @@ def generate_procedure_steps(request):
             description=description,
             instructions=instructions,
         )
+        ai_recommendation = AIRecommendation.objects.create(
+            recommendation_type = AIRecommendation.RecommendationType.PROCEDURE_STEP,
+            input_data  = {
+                "title": title,
+                "description": description,
+                "instructions": instructions
+            },
+            ai_output = result,
+            created_by= request.user,
+        ) 
     except ValueError as error:
         return Response(
             {"detail": str(error)},
@@ -145,7 +160,14 @@ def generate_procedure_steps(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
-    return Response(result, status=status.HTTP_200_OK)
+    return Response({
+            **result,
+            "step_recommendation_id": (
+                ai_recommendation.id
+            ),
+        },
+        status=status.HTTP_200_OK                
+    )
 
 
 @api_view(["POST"])
@@ -214,6 +236,18 @@ def generate_procedure(request):
             amountSteps=amountSteps,
             instructions=instructions,
         )
+        ai_recommendation = AIRecommendation.objects.create(
+            recommendation_type = AIRecommendation.RecommendationType.PROCEDURE,
+            input_data  = {
+                "title": title,
+                "description": description,
+                "amountSteps": amountSteps,
+                "instructions": instructions
+            },
+            ai_output = result,
+            created_by= request.user,
+        ) 
+        
     except RequestException as error:
         print("Local AI server error:", error)
 
@@ -252,9 +286,15 @@ def generate_procedure(request):
         )
 
     return Response(
-        result,
+        {
+            **result,
+            "recommendation_id": (
+                ai_recommendation.id
+            ),
+        },
         status=status.HTTP_200_OK,
     )
+    
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def recommend_step_roles(request):
@@ -322,6 +362,60 @@ def recommend_step_roles(request):
     return Response(
         {
             "recommendations": recommendations,
+        },
+        status=status.HTTP_200_OK,
+    )
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+@transaction.atomic
+def reject_ai_recommendation(request, recommendationId):
+    reason = request.data.get("reason")
+
+    if not isinstance(reason, str):
+        return Response(
+            {"reason": "Reason must be text."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    reason = reason.strip()
+
+    if not reason:
+        return Response(
+            {"reason": "Reason cannot be empty."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    recommendation = get_object_or_404(
+        AIRecommendation.objects.select_for_update(),
+        id=recommendationId,
+        created_by=request.user,
+        recommendation_type__in=[
+            AIRecommendation.RecommendationType.PROCEDURE,
+            AIRecommendation.RecommendationType.PROCEDURE_STEP,
+        ],
+        feedback_status=AIRecommendation.FeedbackStatus.PENDING,
+        procedure_version__isnull=True,
+    )
+
+    recommendation.feedback_status = AIRecommendation.FeedbackStatus.REJECTED
+    recommendation.feedback_reason = reason
+    recommendation.evaluated_at = timezone.now()
+
+    recommendation.save(
+        update_fields=[
+            "feedback_status",
+            "feedback_reason",
+            "evaluated_at",
+            "updated_at",
+        ]
+    )
+
+    return Response(
+        {
+            "id": recommendation.id,
+            "recommendation_type": recommendation.recommendation_type,
+            "feedback_status": recommendation.feedback_status,
+            "feedback_reason": recommendation.feedback_reason,
         },
         status=status.HTTP_200_OK,
     )

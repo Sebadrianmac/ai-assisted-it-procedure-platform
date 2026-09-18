@@ -9,6 +9,107 @@ from ai.validators import (
     validate_role_recommendations,
 )
 from django.contrib.auth.models import Group
+from ai.search_service import search_similar_steps_feedback
+from ai.models import AIRecommendation
+def build_steps_feedback_context(
+    search_results,
+):
+    context_parts = []
+    seen_recommendation_ids = set()
+
+    for item in search_results:
+        recommendation = (
+            item.source.ai_recommendation
+        )
+
+        if (
+            recommendation.id
+            in seen_recommendation_ids
+        ):
+            continue
+
+        seen_recommendation_ids.add(
+            recommendation.id
+        )
+
+        ai_output = recommendation.ai_output
+        final_output = (
+            recommendation.final_output
+        )
+
+        if (
+            not isinstance(ai_output, dict)
+            or not isinstance(
+                final_output,
+                dict,
+            )
+        ):
+            continue
+
+        procedure_output = ai_output.get(
+            "procedure",
+            {},
+        )
+
+        original_steps = (
+            procedure_output.get(
+                "steps",
+                [],
+            )
+            if isinstance(
+                procedure_output,
+                dict,
+            )
+            else []
+        )
+
+        final_steps = final_output.get(
+            "steps",
+            [],
+        )
+
+        example_number = (
+            len(context_parts) + 1
+        )
+
+        if (
+            recommendation.feedback_status
+            == AIRecommendation
+            .FeedbackStatus
+            .MODIFIED
+        ):
+            context_parts.append(
+                (
+                    f"[Step Feedback Example "
+                    f"{example_number}]\n"
+                    "Feedback: modified\n"
+                    "Original AI steps:\n"
+                    f"{json.dumps(
+                        original_steps,
+                        ensure_ascii=False,
+                    )}\n"
+                    "User-corrected steps:\n"
+                    f"{json.dumps(
+                        final_steps,
+                        ensure_ascii=False,
+                    )}"
+                )
+            )
+        else:
+            context_parts.append(
+                (
+                    f"[Step Feedback Example "
+                    f"{example_number}]\n"
+                    "Feedback: accepted\n"
+                    "Accepted steps:\n"
+                    f"{json.dumps(
+                        final_steps,
+                        ensure_ascii=False,
+                    )}"
+                )
+            )
+
+    return "\n\n".join(context_parts)
 
 
 def generate_steps_from_input(title, description, instructions=""):
@@ -28,10 +129,25 @@ def generate_steps_from_input(title, description, instructions=""):
         raise ValueError("Instructions must be text.")
     instructions = instructions.strip()
 
+    feedback_results = list(
+        search_similar_steps_feedback(
+            title=title,
+            description=description,
+            instructions=instructions,
+            limit=2,
+        )
+    )
+
+    feedback_context = (
+        build_steps_feedback_context(
+            feedback_results
+        )
+    )
     prompt = build_procedure_steps_prompt(
         title=title,
         description=description,
         instructions=instructions,
+        feedback_context=feedback_context,
     )
 
     raw_answer = generate_ai_text(
