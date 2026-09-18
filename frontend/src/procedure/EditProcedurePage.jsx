@@ -388,91 +388,72 @@ const EditProcedurePage = ({ permissions = [] }) => {
     await saveProcedure("submit_for_approval", changeType);
   };
   const handleGenerateSteps = async () => {
-  if (!title.trim()) {
-    setAiGeneratingError(
-      "Enter a title before generating steps.",
-    );
-    return;
-  }
+    if (!title.trim()) {
+      setAiGeneratingError("Enter a title before generating steps.");
+      return;
+    }
 
-  if (!description.trim()) {
-    setAiGeneratingError(
-      "Enter a description before generating steps.",
-    );
-    return;
-  }
+    if (!description.trim()) {
+      setAiGeneratingError("Enter a description before generating steps.");
+      return;
+    }
 
-  if (
-    steps.length > 0 &&
-    !window.confirm(
-      "Generating new steps will replace the existing steps. Continue?",
-    )
-  ) {
-    return;
-  }
+    if (
+      steps.length > 0 &&
+      !window.confirm(
+        "Generating new steps will replace the existing steps. Continue?",
+      )
+    ) {
+      return;
+    }
 
-  const previousRecommendationId =
-    stepsRecommendationId;
+    const previousRecommendationId = stepsRecommendationId;
 
-  try {
-    setIsGenerating(true);
-    setAiGeneratingError("");
+    try {
+      setIsGenerating(true);
+      setAiGeneratingError("");
 
-    const response = await api.post(
-      "/api/ai/generate-procedure-steps/",
-      {
+      const response = await api.post("/api/ai/generate-procedure-steps/", {
         title: title.trim(),
         description: description.trim(),
         instructions: instructions.trim(),
-      },
-    );
+      });
 
-    const procedureSteps =
-      response.data.procedure.steps ?? [];
+      const procedureSteps = response.data.procedure.steps ?? [];
 
-    const newRecommendationId =
-      response.data.step_recommendation_id ?? null;
+      const newRecommendationId = response.data.step_recommendation_id ?? null;
 
-    const preparedSteps = procedureSteps.map(
-      (step) => ({
+      const preparedSteps = procedureSteps.map((step) => ({
         ...step,
         document_ids: [],
-      }),
-    );
+      }));
 
-    if (
-      previousRecommendationId !== null &&
-      previousRecommendationId !==
-        newRecommendationId
-    ) {
-      await api.patch(
-        `/api/ai/recommendations/${previousRecommendationId}/reject/`,
-        {
-          reason:
-            "Replaced by a newer step generation.",
-        },
+      if (
+        previousRecommendationId !== null &&
+        previousRecommendationId !== newRecommendationId
+      ) {
+        await api.patch(
+          `/api/ai/recommendations/${previousRecommendationId}/reject/`,
+          {
+            reason: "Replaced by a newer step generation.",
+          },
+        );
+      }
+
+      setSteps(preparedSteps);
+      setStepsRecommendationId(newRecommendationId);
+    } catch (error) {
+      console.error("Failed to generate procedure steps:", error);
+
+      setAiGeneratingError(
+        error.response?.data?.reason ||
+          error.response?.data?.detail ||
+          "Failed to generate procedure steps.",
       );
+    } finally {
+      setIsGenerating(false);
     }
-
-    setSteps(preparedSteps);
-    setStepsRecommendationId(
-      newRecommendationId,
-    );
-  } catch (error) {
-    console.error(
-      "Failed to generate procedure steps:",
-      error,
-    );
-
-    setAiGeneratingError(
-      error.response?.data?.reason ||
-        error.response?.data?.detail ||
-        "Failed to generate procedure steps.",
-    );
-  } finally {
-    setIsGenerating(false);
-  }
-};
+  };
   const aiRecommendationIds = [
     ...new Set(
       [recommendationId, stepsRecommendationId]
